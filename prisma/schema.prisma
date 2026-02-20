@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ContentFormat{
+  ARTICLE
+  VIDEO
+  AUDIO
+  MIXED
+}
+
+enum SessionType{
+  SINGLE
+  BUNDLE
+  DEEP_DIVE
+}
+
+model User {
+  id String @id @default(uuid())
+  email   String  @unique
+  password String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions Session[]
+  bookmarks Bookmark[]
+}
+
+model Content{
+  id String @id @default(uuid())
+  title String
+  description String
+  sourceName String
+  sourceUrl String
+  format ContentFormat
+  topic String
+  estimatedTime Int
+  difficulty Int
+  licenseType String
+  createdAt DateTime  @default(now())
+
+  sessionItems SessionItem[]
+  bookmarks Bookmark[]
+
+}
+
+model Session{
+  id String @id @default(uuid())
+  userId String
+  timeAvailable Int
+  sessionType SessionType
+  takeaways Json?
+  talkingPoints Json?
+  engagementData Json?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+
+  user User @relation(fields:[userId], references:[id])
+  sessionItems SessionItem[]
+}
+model SessionItem{
+  id String @id @default(uuid())
+  sessionId String
+  contentId String
+  orderIndex Int
+  completed Boolean @default(false)
+  timeSpent Int?
+
+  session Session @relation(fields:[sessionId], references:[id])
+  content Content @relation(fields:[contentId], references:[id])
+
+  @@unique([sessionId, contentId])
+}
+
+model Bookmark{
+  id String @id @default(uuid())
+  userId String
+  contentId String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields:[userId], references:[id])
+  content Content @relation(fields:[contentId], references:[id])
+  @@unique([userId, contentId])
+}

@@ -1,0 +1,7 @@
+node_modules/
+.env
+Readme.md
+/src/generated/prisma
+index.js
+db.js
+auth.js
