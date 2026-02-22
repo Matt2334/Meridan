@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const Prisma = new PrismaClient();
-
+const { generateSession } = require('../services/sessionService');
 
 // router.get('/session/:user_id', authJWT, getPastSessions);
 const getPastSessions = async (req,res)=>{
@@ -22,21 +22,14 @@ const getPastSessions = async (req,res)=>{
 }
 
 // router.post('/sessions', authJWT, generateSession);
-const generateSession = async (req,res)=>{
+const createSession = async (req,res)=>{
     const userId = req?.user.id;
     const {time_available, topics, formats} = req.body;
     try{
         const user = await Prisma.user.findUnique({where: {id: userId}});
         if (!user) return res.status(404).json({error: 'User not found'});
         
-        const session = await Prisma.sessions.create({
-            data: {
-                userId,
-                timeAvailable: time_available,
-                topics: topics.join(','),
-                formats: formats.join(','),
-            }
-        });
+        const session = await generateSession({userId, timeAvailable: time_available, topics, formats});
         res.json(session);
     }catch(err){
         console.log(err)
@@ -82,4 +75,4 @@ const sessionComplete = async (req,res)=>{
 
 
 
-module.exports = {generateSession, getPastSessions, getSession, sessionComplete };
+module.exports = {createSession, getPastSessions, getSession, sessionComplete };

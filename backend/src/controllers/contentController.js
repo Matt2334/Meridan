@@ -61,24 +61,65 @@ const getPiece = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
 const createContent = async (req, res) => {
+    const { title, description, sourceName, sourceUrl, format, topic, estimatedTime, difficulty, licenseType } = req.body;
     try {
-        
+        const newContent = await Prisma.content.create({
+            data: {
+                title,
+                description,
+                sourceName,
+                sourceUrl,
+                format,
+                topic,
+                estimatedTime,
+                difficulty,
+                licenseType
+            }
+        });
+        res.status(201).json(newContent); 
     }catch (err) {
         console.log(err);
         res.status(500).json({ error: err.message });
     }
 };
 const updateContent = async (req, res) => {
+    const {id} = req.params;
+    const { title, description, sourceName, sourceUrl, format, topic, estimatedTime, difficulty, licenseType } = req.body;
     try {
-        
+        if (!id) return res.status(400).json({ error: "Content ID is required" });
+        const content = await Prisma.content.findUnique({ where: { id: parseInt(id) } });
+        if (!content) return res.status(404).json({ error: "Content not found" });  
+
+        const updatedContent = await Prisma.content.update({
+            where: { id: parseInt(id) },
+            data: {
+                title,
+                description,
+                sourceName,
+                sourceUrl,
+                format,
+                topic,
+                estimatedTime,
+                difficulty,
+                licenseType
+            }
+        });
+        res.json(updatedContent);
     }catch (err) {
         console.log(err);
         res.status(500).json({ error: err.message });
     }
 };
 const deleteContent = async (req, res) => {
+    const {id} = req.params;
     try {
+        if (!id) return res.status(400).json({ error: "Content ID is required" });
+        const content = await Prisma.content.findUnique({ where: { id: parseInt(id) } });
+        if (!content) return res.status(404).json({ error: "Content not found" });  
+        await Prisma.content.delete({ where: { id: parseInt(id) } });
+        res.json({ message: "Content deleted successfully" });
         
     }catch (err) {
         console.log(err);

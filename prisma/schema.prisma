@@ -19,11 +19,16 @@ enum SessionType{
   BUNDLE
   DEEP_DIVE
 }
+enum UserRole{
+  ADMIN
+  USER
+}
 
 model User {
   id String @id @default(uuid())
   email   String  @unique
   password String
+  role UserRole @default(USER)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   sessions Session[]
