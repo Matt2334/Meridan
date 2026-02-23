@@ -1,0 +1,12 @@
+body{
+  font-family: 'DM Sans', sans-serif;
+  background: #f5f3ef;
+  color: #1c1c1e;
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
