@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
 const Wrapper = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  // position: fixed;
+  // top: 0;
+  // left: 0;
+  // right: 0;
   z-index: 100;
   padding: 20px 48px;
   display: flex;

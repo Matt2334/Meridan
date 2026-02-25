@@ -1,13 +1,6 @@
-import styled, { keyframes } from "styled-components";
-const fadeUp = keyframes`
-  from {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }`;
+"use client";
+import styled from "styled-components";
+import { fadeUp } from "../../components/keys";
 
 const Wrapper = styled.div`
   max-width: 720px;
@@ -15,7 +8,7 @@ const Wrapper = styled.div`
   padding: 0 32px;
   animation: ${fadeUp} 0.5s ease 0s 1 normal forwards;
 `;
-const Title = styled.h2`
+const HistoryTitle = styled.h2`
   font-family: "Cormorant Garamond", serif;
   font-size: clamp(2rem, 3.5vw, 2.8rem);
   font-weight: 300;
@@ -38,11 +31,12 @@ const Content = styled.div`
   text-align: center;
   padding: 80px 0;
 `;
+
 const sessions = [];
 export default function History() {
   return (
     <Wrapper>
-      <Title>Your sessions</Title>
+      <HistoryTitle>Your sessions</HistoryTitle>
       {sessions.length === 0 ? (
         <p>No sessions yet</p>
       ) : (
