@@ -76,9 +76,16 @@ export default function Session() {
   ];
   let percentIncrement = 100 / contents.length;
   const updateProgress = () => {
-    const newPercentage = percentage+ percentIncrement ;
-    setPercentage(newPercentage);
-  };
+  setPercentage(prev =>
+    Math.min(100, prev + percentIncrement)
+  );
+};
+
+const removeProgress = () => {
+  setPercentage(prev =>
+    Math.max(0, prev - percentIncrement)
+  );
+};
   return (
     <Wrapper>
       <Meta>
@@ -116,6 +123,7 @@ export default function Session() {
             index={i + 1}
             key={i}
             updateProgress={updateProgress}
+            removeProgress={removeProgress}
           />
         ))}
       </Content>

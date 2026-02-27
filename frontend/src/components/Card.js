@@ -1,6 +1,6 @@
 "use client";
 import styled from "styled-components";
-import {useState} from "react";
+import { useState } from "react";
 
 const Wrapper = styled.div`
   background: #faf9f7;
@@ -61,12 +61,12 @@ const Button = styled.a`
   font-family: "DM Sans", sans-serif;
   font-size: 0.8rem;
   font-weight: 500;
-  background:${({ $marked }) => $marked ? "rgb(28, 28, 30, 0.8)" : "transparent"};
-  color: ${({ $marked }) => $marked ? "#faf9f7" : "#1c1c1e"};
+  background: ${({ $marked }) =>
+    $marked ? "rgb(28, 28, 30, 0.8)" : "transparent"};
+  color: ${({ $marked }) => ($marked ? "#faf9f7" : "#1c1c1e")};
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.02em;
-   
 
   ${(props) =>
     props.secondary &&
@@ -78,13 +78,30 @@ const Button = styled.a`
     `}
 `;
 
-
-export default function Card({ content, index, updateProgress }) {
-    const [marked, setMarked] = useState(false);
-    const handleProgress = () => {
-        updateProgress(index);
-        setMarked(!marked);
+export default function Card({
+  content,
+  index,
+  updateProgress,
+  removeProgress,
+}) {
+  const [marked, setMarked] = useState(false);
+  // const handleProgress = () => {
+  //     updateProgress(index);
+  //     setMarked(!marked);
+  // }
+  // const handleRemoveProgress = () => {
+  //     removeProgress(index);
+  //     setMarked(false);
+  // }
+  const handleProgress = () => {
+    if (marked) {
+      removeProgress();
+    } else {
+      updateProgress();
     }
+
+    setMarked(!marked);
+  };
   return (
     <Wrapper>
       <span className="time">{index}</span>
@@ -93,11 +110,14 @@ export default function Card({ content, index, updateProgress }) {
         <Description>{content.desc}</Description>
         <CardFooter>
           <span>{content.time} min</span>
-          <Button $marked={marked} primary="true" href={content.url}>Open</Button>
-          <Button onClick={handleProgress} secondary="true">Mark as read</Button>
+          <Button $marked={marked} primary="true" href={content.url}>
+            Open
+          </Button>
+          <Button onClick={handleProgress} secondary="true">
+            Mark as read
+          </Button>
         </CardFooter>
       </div>
     </Wrapper>
   );
 }
- 

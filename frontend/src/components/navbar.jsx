@@ -56,7 +56,7 @@ export default function Navbar() {
       </div>
 
       <NavLinks>
-        <NavLink href="/learn">Learn</NavLink>
+        <NavLink href="/">Learn</NavLink>
         <NavLink href="/history">History</NavLink>
       </NavLinks>
     </Wrapper>
