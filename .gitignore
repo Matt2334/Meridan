@@ -6,3 +6,5 @@ index.js
 db.js
 auth.js
 .next/
+/backend/*.yml
+migrations/

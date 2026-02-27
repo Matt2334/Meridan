@@ -1,7 +1,7 @@
 const express = require('express');
 const authJWT = require('../middleware/auth');
 const router = express.Router();
-const {createSession, getPastSessions, getSession, sessionComplete} = require('../controllers/contentController');
+const {createSession, getPastSessions, getSession, sessionComplete} = require('../controllers/sessionController');
 
 router.get('/session/:user_id', authJWT, getPastSessions);
 router.post('/sessions', authJWT, createSession);

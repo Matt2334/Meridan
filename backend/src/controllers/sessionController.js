@@ -1,5 +1,11 @@
-const { PrismaClient } = require('@prisma/client');
-const Prisma = new PrismaClient();
+const { PrismaClient } = require('../generated/client');
+const {PrismaPg} = require('@prisma/adapter-pg');
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const Prisma = new PrismaClient({ adapter });
+
 const { generateSession } = require('../services/sessionService');
 
 // router.get('/session/:user_id', authJWT, getPastSessions);
