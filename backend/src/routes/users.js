@@ -5,7 +5,7 @@ const router = express.Router();
 const {signUp, signIn, deleteUser, signOut, userInfo, updateUser } = require('../controllers/usersController');
 
 router.post('/signup', signUp);
-router.get('/signIn', signIn);
+router.post('/signIn', signIn);
 router.delete('/delete', authJWT, deleteUser);
 router.post('/signout', authJWT, signOut);
 router.get('/me', authJWT, userInfo);

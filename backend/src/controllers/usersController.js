@@ -1,18 +1,20 @@
 const { PrismaClient } = require('../generated/client');
 const {PrismaPg} = require('@prisma/adapter-pg');
+const jwt = require ('jsonwebtoken');
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
 const Prisma = new PrismaClient({ adapter });
 
-
+const bcrypt = require('bcrypt');
 
 // router.post('/signout', signOut);
 const signOut = async (req,res)=>{
     const userId = req?.user.id;
     try{
         await Prisma.sessions.deleteMany({where: {userId}});
+        res.clearCookie('token');
         res.json({message: 'Signed out successfully'});
     }catch(err){
         console.log(err)
@@ -29,6 +31,18 @@ const signUp = async (req,res)=>{
         const user = await Prisma.user.create({
             data: {email:email,password:p, preferences:preferences}
         });
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        res.cookie('token', token, {
+            httpOnly: true,   
+            secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+            sameSite: 'strict', // Prevents CSRF
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in ms
+        });
+
         res.status(201).json({message: 'User created successfully'});
     }catch(err){
         console.log(err)
@@ -37,12 +51,26 @@ const signUp = async (req,res)=>{
 }
 // router.get('/signIn', signIn);
 const signIn = async (req,res)=>{
-    const {email, password} = req.query;
+    const {email, password} = req.body;
     try{
         const user = await Prisma.user.findFirst({where: {email}});
         if (!user) return res.status(404).json({error:'User not found'});
         const pMatch = await bcrypt.compare(password, user.password);
         if (!pMatch) return res.status(401).json({error: 'Invalid password'});
+        
+        
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        res.cookie('token', token, {
+            httpOnly: true,   
+            secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+            sameSite: 'strict', // Prevents CSRF
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days in ms
+        });
+        res.json({message: 'Sign in successful'});
     }catch(err){
         console.log(err)
         res.status(500).json({ error: err.message });
