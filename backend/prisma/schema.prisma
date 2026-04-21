@@ -9,6 +9,7 @@ datasource db {
 
 enum ContentFormat{
   ARTICLE
+  PAPER
   VIDEO
   AUDIO
   MIXED
@@ -40,7 +41,7 @@ model Content{
   title String
   description String
   sourceName String
-  sourceUrl String
+  sourceUrl String @unique
   format ContentFormat
   topic String
   estimatedTime Int

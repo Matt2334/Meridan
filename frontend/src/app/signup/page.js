@@ -1,6 +1,10 @@
 "use client";
 import styled from "styled-components";
 import { useState } from "react";
+import {
+  analyzePasswordStrength,
+  getStrength,
+} from "../../components/passwordEvaluator";
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -86,9 +90,11 @@ const A = styled.a`
   margin-bottom: 16px;
   align-self: end;
 `;
-export default function SignIn() {
+export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [password, setPassword] = useState("");
+  const strength = getStrength(analyzePasswordStrength(password).score);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,9 +106,9 @@ export default function SignIn() {
       password: formData.get("password"),
     };
     try {
-      const response = await fetch("http://localhost:3000/users/signIn", {
+      const response = await fetch("http://localhost:3000/users/signup", {
         method: "POST",
-        credentials: 'include',
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -110,11 +116,11 @@ export default function SignIn() {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.message || "Sign in failed");
+        setError(errorData.message || "Sign up failed");
       }
       const result = await response.json();
-      console.log("Sign in successful:", result);
-      window.location.href = "/"; 
+      console.log("Sign up successful:", result);
+      window.location.href = "/";
     } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {
@@ -123,21 +129,30 @@ export default function SignIn() {
   };
   return (
     <Wrapper>
-      <Title>Welcome Back</Title>
-      <Span>Sign in to continue your sessions</Span>
+      <Title>Begin Learning</Title>
+      <Span>Create your account in seconds</Span>
       <Form onSubmit={handleSubmit}>
         <span>Email</span>
         <input type="email" name="email" placeholder="Email" required />
         <span>Password</span>
         <input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           type="password"
           name="password"
           placeholder="........."
           required
           style={{ marginBottom: "0" }}
         />
-        <A href="/forgot-password">Forgot Password?</A>
-        <Button type="submit">Sign in →</Button>
+        <div style={{display: "flex", gap:'4px', marginTop: '8px'}}>
+        {Array.from({length: 4}, (_, i) => (
+          <div key={i}style={{flex:"1", height: '2px', background: strength.bars>i &&password?"#4a6fa5":"rgb(31 30 29 / 15%)"}}/>
+        ))}
+        </div>
+        {password && <span>Strength: {strength.label}</span>}
+        <Button style={{ marginTop: "16px" }} type="submit">
+          Create Account →
+        </Button>
         <Break>
           <div></div>
           <span>or</span>
@@ -171,10 +186,10 @@ export default function SignIn() {
               fill="#EA4335"
             ></path>
           </svg>
-          Continue with Google
+          Sign up with Google
         </Button>
-        <A href="/signup" style={{ alignSelf: "center", marginTop: "16px" }}>
-          No account? <u>Create one</u>
+        <A href="/signin" style={{ alignSelf: "center", marginTop: "16px" }}>
+          Have an account? <u>Sign in</u>
         </A>
       </Form>
     </Wrapper>

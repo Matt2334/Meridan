@@ -1,5 +1,6 @@
+"use client";
 import styled from "styled-components";
-
+import { useState, useEffect } from "react";
 const Wrapper = styled.div`
   // position: fixed;
   // top: 0;
@@ -49,6 +50,41 @@ const NavLink = styled.a`
 `;
 
 export default function Navbar() {
+  const [isSignedIn, setIsSignedIn] = useState(false); 
+  useEffect(() => {
+    const checkAuth = async () => {
+        try {
+            const res = await fetch('http://localhost:3000/users/loggedIn', {
+                method: 'GET',
+                credentials: 'include',
+            });
+            const data = await res.json();
+            console.log(data);
+            if (data.authenticated) {
+                setIsSignedIn(true);
+            } else {
+                setIsSignedIn(false);
+            }
+        } catch (err) {
+            setIsSignedIn(false);
+        }
+    };
+
+    checkAuth();
+}, []);
+  const handleSignOut = async () => {
+    try{
+      const res = await fetch('http://localhost:3000/users/signout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        setIsSignedIn(false);
+      }
+    } catch (err) {
+      console.error("Error signing out:", err);
+    }
+  }
   return (
     <Wrapper>
       <div>
@@ -58,6 +94,10 @@ export default function Navbar() {
       <NavLinks>
         <NavLink href="/">Learn</NavLink>
         <NavLink href="/history">History</NavLink>
+        {isSignedIn? <NavLink onClick={handleSignOut}>Sign Out</NavLink> : <>
+        <NavLink href="/signin">Sign In</NavLink>
+        <NavLink href="/signup">Sign Up</NavLink>
+        </>}
       </NavLinks>
     </Wrapper>
   );
