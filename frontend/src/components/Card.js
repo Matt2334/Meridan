@@ -67,7 +67,7 @@ const Button = styled.a`
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.02em;
-
+  text-decoration: none;
   ${(props) =>
     props.secondary &&
     `
@@ -107,10 +107,10 @@ export default function Card({
       <span className="time">{index}</span>
       <div>
         <Title>{content.title}</Title>
-        <Description>{content.desc}</Description>
+        <Description>{content.description}</Description>
         <CardFooter>
-          <span>{content.time} min</span>
-          <Button $marked={marked} primary="true" href={content.url}>
+          <span>{content.estimatedTime} min</span>
+          <Button $marked={marked} primary="true" href={content.sourceUrl}>
             Open
           </Button>
           <Button onClick={handleProgress} secondary="true">

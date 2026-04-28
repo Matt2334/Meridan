@@ -1,7 +1,8 @@
 "use client";
 import { fadeUp } from "../../components/keys";
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Card from "../../components/Card";
 const Wrapper = styled.div`
   max-width: 720px;
@@ -44,36 +45,36 @@ const Content = styled.div`
   margin-top: 3rem;
 `;
 export default function Session() {
-  let topic = "Philosophy";
-  let time = 20;
+  const searchParams = useSearchParams();
+  const time = searchParams.get("time");
+  const topic = searchParams.get("topic");
   const [percentage, setPercentage] = useState(0);
-  const contents = [
-    {
-      title: "Before Adam Smith: Pre-Capitalist Economic Thought",
-      desc: "Mercantilism, scholastic just price theory, and why the ancients didn't have economics as a discipline.",
-      time: 8,
-    },
-    {
-      title: "Classical Economics: Value, Labor & Accumulation",
-      desc: "Smith, Ricardo, and Mill — the foundations of thinking about growth, distribution, and trade.",
-      time: 10,
-    },
-    {
-      title: "Marx's Method: A Critical Engagement",
-      desc: "The labor theory of value, alienation, and the systemic critique that shaped 150 years of political economy.",
-      time: 10,
-    },
-    {
-      title: "The Marginalist Revolution",
-      desc: "How the neoclassical school replaced classical concepts with utility, equilibrium, and mathematical formalism.",
-      time: 8,
-    },
-    {
-      title: "Keynes vs. Hayek: The 20th Century's Great Debate",
-      desc: "Aggregate demand and animal spirits versus spontaneous order and price signals — a debate that never resolved.",
-      time: 10,
-    },
-  ];
+  const [contents, setContents] = useState([]);
+  useEffect(()=>{
+    const fetchContent = async () => {
+    try{
+    const res = await fetch(`http://localhost:3000/content?time=${time}&topic=${topic}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials:"include",
+    }
+    );
+    if (!res.ok) {
+      throw new Error("Failed to fetch content");
+    }
+    console.log(await res)
+    setContents(await res.json());
+    }catch(err){
+      console.error(err);
+    }
+
+  };
+  if (time && topic) fetchContent();
+}, [time, topic]);
+
+  console.log(contents);
   let percentIncrement = 100 / contents.length;
   const updateProgress = () => {
   setPercentage(prev =>

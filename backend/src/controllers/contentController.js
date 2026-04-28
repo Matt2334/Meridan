@@ -11,9 +11,9 @@ const getContent = async (req, res) => {
   try {
     const { limit = 10, offset = 0, topic, format, time } = req.query;
     const where = {};
-    if (topic) where.topic = topic;
+    if (topic) where.topic = topic.toUpperCase();
     if (format) where.format = format;
-    if (time) where.time = time;
+    if (time) where.estimatedTime = {lte: parseInt(time)} ;
     
     const content = await Prisma.content.findMany({
         where,
@@ -21,10 +21,11 @@ const getContent = async (req, res) => {
         skip: parseInt(offset),
     });
     if (!content.length) return res.status(404).json({ error: "No content found" });
-    res.json(content);
+    console.log(content);
+    return res.status(200).json(content);
   } catch (err) {
     console.log(err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -35,8 +36,8 @@ const searchContent = async (req, res) => {
         const where = {};
         if (keyword) where.keyword = keyword;
         if (topic) where.topic = topic;
-        if (time) where.time = time;
-        if (difficulty) where.difficulty = difficulty;
+        if (time) where.estimatedTime = {lte: parseInt(time)};
+        if (difficulty) where.difficulty = parseInt(difficulty);
 
         const content = await Prisma.content.findMany({
             where,
@@ -45,10 +46,10 @@ const searchContent = async (req, res) => {
         });
         if (!content.length) return res.status(404).json({ error: "No matching content found" });
         
-        res.json(content);
+        return res.status(200).json(content);
     }catch (err) {
         console.log(err);
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
     }
 };
 
