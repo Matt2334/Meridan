@@ -1,10 +1,4 @@
-const { PrismaClient } = require('../generated');
-const {PrismaPg} = require('@prisma/adapter-pg');
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
-
-const Prisma = new PrismaClient({ adapter });
+const { Prisma } = require('../../prisma/library/prisma');
 
 // router.get('/content', getContent);
 const getContent = async (req, res) => {

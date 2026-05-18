@@ -1,7 +1,22 @@
 "use client";
 import React, { useState } from "react";
 import styled from "styled-components";
-
+// :root {
+//     --cream: #f5f3ef;
+//     --cream-dark: #ede9e3;
+//     --charcoal: #1c1c1e;
+//     --charcoal-mid: #3a3a3c;
+//     --charcoal-light: #6b6b6f;
+//     --muted-blue: #4a6fa5;
+//     --muted-blue-light: #d4e0f0;
+//     --muted-blue-pale: #eef3fa;
+//     --warm-white: #faf9f7;
+//     --border: rgba(28,28,30,0.1);
+//     --shadow-soft: 0 2px 20px rgba(28,28,30,0.06);
+//     --shadow-card: 0 4px 32px rgba(28,28,30,0.08);
+//     --radius: 16px;
+//     --radius-sm: 10px;
+//     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 const Wrapper = styled.div`
   max-width: 680px;
   margin: 0 auto;
@@ -124,11 +139,11 @@ export default function Home() {
   const [startToggle, setStartToggle] = useState(false);
   const [customTime, setCustomTime] = useState(1);
   const [selectedTimeToggle, setSelectedTimeToggle] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState("");
   const updateCustomTime = (e) => {
     const value = e.target.value;
     setCustomTime(value);
     setStartToggle(true);
-    e;
   };
 
   const selectTime = () => {
@@ -174,7 +189,7 @@ export default function Home() {
 
       <Break />
       <P>What interests you?</P>
-      <Dropdown>
+      <Dropdown value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
         <option value="">Any topic</option>
         <option value="economics">Economics</option>
         <option value="investing">Investing & Finance</option>
@@ -186,7 +201,7 @@ export default function Home() {
         <option value="psychology">Psychology</option>
       </Dropdown>
       <div>
-        <a href="/session">
+        <a href={`/session?time=${time[selectedTimeToggle]}&topic=${selectedTopic}`}>
           <Begin disabled={!startToggle}>Begin Session →</Begin>
         </a>
       </div>

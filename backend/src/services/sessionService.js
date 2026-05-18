@@ -1,11 +1,4 @@
-const { PrismaClient } = require('../generated/client');
-const {PrismaPg} = require('@prisma/adapter-pg');
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
-
-const Prisma = new PrismaClient({ adapter });
-
+const { Prisma } = require('../../prisma/library/prisma');
 const generateSession = async ({ userId, timeAvailable, topics, formats }) => {
   console.log(
     `Generating session for user ${userId} with ${timeAvailable} minutes available...`,

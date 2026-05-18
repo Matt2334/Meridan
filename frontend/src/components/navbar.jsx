@@ -54,7 +54,7 @@ export default function Navbar() {
   useEffect(() => {
     const checkAuth = async () => {
         try {
-            const res = await fetch('http://localhost:3000/users/loggedIn', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/loggedIn`, {
                 method: 'GET',
                 credentials: 'include',
             });
@@ -74,7 +74,7 @@ export default function Navbar() {
 }, []);
   const handleSignOut = async () => {
     try{
-      const res = await fetch('http://localhost:3000/users/signout', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/signout`, {
         method: 'POST',
         credentials: 'include',
       });

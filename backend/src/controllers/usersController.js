@@ -1,12 +1,5 @@
-const { PrismaClient } = require("../generated/client");
-const { PrismaPg } = require("@prisma/adapter-pg");
+const { Prisma } = require('../../prisma/library/prisma');
 const jwt = require("jsonwebtoken");
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
-
-const Prisma = new PrismaClient({ adapter });
-
 const bcrypt = require("bcrypt");
 
 // router.post('/signout', signOut);

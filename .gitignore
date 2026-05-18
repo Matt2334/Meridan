@@ -1,5 +1,5 @@
 node_modules/
-.env
+*.env*
 Readme.md
 /backend/src/generated
 index.js

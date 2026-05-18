@@ -106,7 +106,7 @@ export default function SignUp() {
       password: formData.get("password"),
     };
     try {
-      const response = await fetch("http://localhost:3000/users/signup", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/signup`, {
         method: "POST",
         credentials: "include",
         headers: {
