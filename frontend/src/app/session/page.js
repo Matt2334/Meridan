@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = 'force-dynamic';
 import { fadeUp } from "../../components/keys";
 import styled from "styled-components";
 import { useState, useEffect } from "react";
