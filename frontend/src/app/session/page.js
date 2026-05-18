@@ -1,5 +1,5 @@
 "use client";
-export const dynamic = 'force-dynamic';
+import { Suspense } from 'react'
 import { fadeUp } from "../../components/keys";
 import styled from "styled-components";
 import { useState, useEffect } from "react";
@@ -89,6 +89,7 @@ const removeProgress = () => {
   );
 };
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <Wrapper>
       <Meta>
         <span>{topic}</span>
@@ -130,5 +131,6 @@ const removeProgress = () => {
         ))}
       </Content>
     </Wrapper>
+    </Suspense>
   );
 }
