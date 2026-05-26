@@ -9,7 +9,7 @@ const db = require('./db');
 const usersRouter = require('./routes/users');
 const contentRouter = require('./routes/content');
 const sessionRouter = require('./routes/sessions');
-
+const { generalLimiter } = require('./middleware/rateLimiters');
 const app = express();
 
 app.use(cors({
@@ -19,6 +19,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(generalLimiter);
 
 app.get('/health', async (req, res) => {
   try {
@@ -30,6 +31,7 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/users', usersRouter);
+
 app.use('/', contentRouter);
 app.use('/', sessionRouter);
 
