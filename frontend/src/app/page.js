@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import styled from "styled-components";
+import assert from "assert";
 // :root {
 //     --cream: #f5f3ef;
 //     --cream-dark: #ede9e3;
@@ -133,18 +134,27 @@ const Dropdown = styled.select`
   margin-bottom: 24px;
 `;
 
-const time = [5, 10, 20, 30, 60];
+let time = [5, 10, 20, 30, 60];
 export default function Home() {
   const [customToggle, setCustomToggle] = useState(false);
   const [startToggle, setStartToggle] = useState(false);
   const [customTime, setCustomTime] = useState(1);
   const [selectedTimeToggle, setSelectedTimeToggle] = useState(null);
-  const [selectedTopic, setSelectedTopic] = useState("");
-  const updateCustomTime = (e) => {
-    const value = e.target.value;
-    setCustomTime(value);
-    setStartToggle(true);
-  };
+  const [selectedTopic, setSelectedTopic] = useState("any");
+  const [timeError, setTimeError] = useState("");
+ const updateCustomTime = (e) => {
+  const value = parseInt(e.target.value);
+
+  if (!Number.isInteger(value) || value <= 0) {
+    setTimeError("Please enter a valid number");
+    setStartToggle(false);
+    return;
+  }
+
+  setTimeError("");
+  setCustomTime(value);
+  setStartToggle(true);
+};
 
   const selectTime = () => {
     setCustomToggle(true);
@@ -178,6 +188,7 @@ export default function Home() {
         </TimeButton>
       </Grid>
       {customToggle && (
+        <>
         <TimeInput
           placeholder="Enter minutes..."
           min="1"
@@ -185,12 +196,14 @@ export default function Home() {
           onChange={updateCustomTime}
           onInput={updateCustomTime}
         />
+        {timeError && <p style={{ color: 'red', fontSize: '0.8rem' }}>{timeError}</p>}
+        </>
       )}
 
       <Break />
       <P>What interests you?</P>
       <Dropdown value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)}>
-        <option value="">Any topic</option>
+        <option value="any">Any topic</option>
         <option value="economics">Economics</option>
         <option value="investing">Investing & Finance</option>
         <option value="ai">Artificial Intelligence</option>
@@ -201,9 +214,15 @@ export default function Home() {
         <option value="psychology">Psychology</option>
       </Dropdown>
       <div>
-        <a href={`/session?time=${time[selectedTimeToggle]}&topic=${selectedTopic}`}>
-          <Begin disabled={!startToggle}>Begin Session →</Begin>
-        </a>
+        {customToggle ? (
+          <a href={`/session?time=${customTime}&topic=${selectedTopic}`}>
+            <Begin disabled={!startToggle}>Begin Session →</Begin>
+          </a>
+        ) : (
+          <a href={`/session?time=${time[selectedTimeToggle]}&topic=${selectedTopic}`}>
+            <Begin disabled={!startToggle}>Begin Session →</Begin>
+          </a>
+        )}
       </div>
     </Wrapper>
   );

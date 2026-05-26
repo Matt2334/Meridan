@@ -5,7 +5,7 @@ const getContent = async (req, res) => {
   try {
     const { limit = 10, offset = 0, topic, format, time } = req.query;
     const where = {};
-    if (topic) where.topic = topic.toUpperCase();
+    if (topic && topic !== "any") where.topic = topic.toUpperCase();
     if (format) where.format = format;
     if (time) where.estimatedTime = {lte: parseInt(time)} ;
     

@@ -53,6 +53,7 @@ export default function Session() {
   useEffect(()=>{
     const fetchContent = async () => {
     try{
+      console.log(time, topic)
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content?time=${time}&topic=${topic}`, {
       method: "GET",
       headers: {
