@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Card from "./Card";
+import CardSkeleton from "./cardSkeleton";
 const Wrapper = styled.div`
   max-width: 720px;
   margin: 0 auto;
@@ -46,37 +47,38 @@ const Content = styled.div`
 const A = styled.a`
   text-decoration: none;
   color: inherit;
-  `;
+`;
 export default function Session() {
   const searchParams = useSearchParams();
   const time = searchParams.get("time");
   const topic = searchParams.get("topic");
+  const [loading, setLoading] = useState(true);
   const [percentage, setPercentage] = useState(0);
   const [contents, setContents] = useState([]);
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
-    const fetchContent = async () => {
+    const createSession = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/content?time=${time}&topic=${topic}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({ time, topic }),
+        });
         if (!res.ok) {
-          throw new Error("Failed to fetch content");
+          console.log(await res.json());
+          throw new Error("Failed to create session");
         }
-
-        setContents(await res.json());
+        const data = await res.json();
+        setContents(data.sessionItems.map((item) => item.content));
+        setLoading(false);
       } catch (err) {
         console.error(err);
       }
     };
-    if (time && topic) fetchContent();
+    if (time && topic) createSession();
   }, [time, topic]);
   const percentIncrement = contents.length > 0 ? 100 / contents.length : 0;
   const updateProgress = () => {
@@ -102,7 +104,7 @@ export default function Session() {
         console.error(err);
       }
     };
-    checkAuth(); 
+    checkAuth();
   }, []);
   return (
     <Wrapper>
@@ -135,15 +137,17 @@ export default function Session() {
       </Progress>
 
       <Content>
-        {contents.map((content, i) => (
-          <Card
-            content={content}
-            index={i + 1}
-            key={i}
-            updateProgress={updateProgress}
-            removeProgress={removeProgress}
-          />
-        ))}
+        {loading
+          ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+          : contents.map((content, i) => (
+              <Card
+                content={content}
+                index={i + 1}
+                key={content.id}
+                updateProgress={updateProgress}
+                removeProgress={removeProgress}
+              />
+            ))}
       </Content>
       {!signedIn && (
         <div
@@ -158,9 +162,7 @@ export default function Session() {
             Create a free account to save your session history and track your
             progress.
           </p>
-          <A href="/signup" >
-            Save your progress →
-          </A>
+          <A href="/signup">Save your progress →</A>
         </div>
       )}
     </Wrapper>

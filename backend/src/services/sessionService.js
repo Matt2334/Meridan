@@ -1,33 +1,66 @@
-const { Prisma } = require('../../prisma/library/prisma');
-const generateSession = async ({ userId, timeAvailable, topics, formats }) => {
+const { Prisma } = require("../../prisma/library/prisma");
+const generateSession = async ({ userId, time, topic, formats }) => {
+  const parsedTime = Number(time);
+
+  if (Number.isNaN(parsedTime)) {
+    throw new Error("Invalid time value");
+  }
+
   console.log(
-    `Generating session for user ${userId} with ${timeAvailable} minutes available...`,
+    `Generating session for user ${userId} with ${parsedTime} minutes available...`,
   );
 
-  const userSessions = await prisma.session.findMany({
-    where: { userId },
-    include: { sessionItems: { select: { contentId: true } } },
-  });
+  const usedContentIds = await Prisma.sessionItem
+    .findMany({
+      where: { session: { userId } },
+      select: { contentId: true },
+    })
+    .then((items) => items.map((item) => item.contentId));
+  const isMixed = !formats || formats.includes("MIXED");
 
-  const usedContentIds = userSessions.flatMap((s) => 
-    s.sessionItems.map((item) => item.contentId)
-  );
+  let contentPool = [];
+  if (topic === "ANY") {
+    contentPool = await prisma.content.findMany({
+      where: {
+        estimatedTime: { lte: Number(time) },
+        id: { notIn: usedContentIds },
+      },
+    });
+    if (contentPool.length === 0) {
+      contentPool = await prisma.content.findMany({
+        where: {
+          estimatedTime: { lte: Number(time) },
+        },
+      });
+    }
+  } else {
+    contentPool = await prisma.content.findMany({
+      where: {
+        topic: topic,
+        estimatedTime: { lte: Number(time) },
+        id: { notIn: usedContentIds },
+      },
+    });
 
-  const contentPool = await prisma.content.findMany({
-    where: {
-      topic: {in: topics},
-      estimatedTime: { lte: timeAvailable },
-      id: { notIn: usedContentIds },
-      format: { in: formats },
-    },
-  });
+    if (contentPool.length === 0) {
+      contentPool = await prisma.content.findMany({
+        where: {
+          topic: topic.toUpperCase(),
+          estimatedTime: { lte: Number(time) },
+        },
+      });
+    }
+  }
+  console.log(contentPool)
+  const selected = fitContentToTime(contentPool, time);
+  if (selected.length === 0) {
+    throw new Error("No content available for the selected topic and time");
+  }
 
-  const selected = fitContentToTime(contentPool, timeAvailable);
-
-  const session = await prisma.session.create({
+  const session = await Prisma.session.create({
     data: {
       userId,
-      timeAvailable,
+      timeAvailable: time,
       sessionType: selected.length === 1 ? "SINGLE" : "BUNDLE",
       sessionItems: {
         create: selected.map((item, index) => ({
@@ -35,25 +68,28 @@ const generateSession = async ({ userId, timeAvailable, topics, formats }) => {
           orderIndex: index,
         })),
       },
-      include: {sessionItems: {
+    },
+    include: {
+      sessionItems: {
         include: {
           content: true,
         },
-      }},
+      },
     },
   });
 
   return session;
 };
 
-const fitContentToTime = (contentPool, timeAvailable) => {
+const fitContentToTime = (contentPool, time) => {
+  const shuffled = [...contentPool].sort(() => Math.random() - 0.5);
   let totalTime = 0;
   let selected = [];
-  for (content of contentPool) {
-    if (totalTime + content.estimatedTime <= timeAvailable) {
+  for (const content of shuffled) {
+    if (totalTime + content.estimatedTime <= time) {
       totalTime += content.estimatedTime;
-      selected.push(content)
-    } 
+      selected.push(content);
+    }
   }
   return selected;
 };
