@@ -1,4 +1,4 @@
-const { Prisma } = require('../../prisma/library/prisma');
+const { Prisma } = require("../../prisma/library/prisma");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
@@ -59,9 +59,11 @@ const signIn = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // HTTPS only in prod
-      sameSite: "strict", // Prevents CSRF
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
     });
+    console.log("NODE_ENV:", process.env.NODE_ENV);
+    console.log("secure:", process.env.NODE_ENV === "production");
     res.json({ message: "Sign in successful" });
   } catch (err) {
     console.log(err);
@@ -86,20 +88,17 @@ const deleteUser = async (req, res) => {
 };
 
 // router.get('/me', userInfo);
-const userInfo = async (req,res)=>{
-    const userId = req.user.id;
-    try{
-        const user = await Prisma.user.findUnique({where: {id: userId}});
-        if (!user) return res.status(404).json({error: 'User not found'});
-        res.json(user);
-
-    }catch(err){
-        console.log(err)
-        res.status(500).json({ error: err.message });
-
-    }
-
-}
+const userInfo = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const user = await Prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // router.put('/update', updateUser);
 const updateUser = async (req, res) => {
@@ -116,20 +115,20 @@ const updateUser = async (req, res) => {
     console.log(err);
     res.status(500).json({ error: err.message });
   }
-}
-  const loggedIn = async (req, res) => {
-    const token = req.cookies.token;
-    if (!token) return res.json({ loggedIn: false });
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await Prisma.user.findFirst({
-        where: { id: decoded.userId },
-      });
-      res.json({ authenticated: true });
-    } catch (err) {
-      res.json({ authenticated: false, error: err.message });
-    }
-  };
+};
+const loggedIn = async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.json({ loggedIn: false });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await Prisma.user.findFirst({
+      where: { id: decoded.userId },
+    });
+    res.json({ authenticated: true });
+  } catch (err) {
+    res.json({ authenticated: false, error: err.message });
+  }
+};
 
 module.exports = {
   signOut,
