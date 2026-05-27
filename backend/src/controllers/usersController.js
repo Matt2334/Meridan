@@ -62,8 +62,6 @@ const signIn = async (req, res) => {
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
     });
-    console.log("NODE_ENV:", process.env.NODE_ENV);
-    console.log("secure:", process.env.NODE_ENV === "production");
     res.json({ message: "Sign in successful" });
   } catch (err) {
     console.log(err);

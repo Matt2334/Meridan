@@ -20,21 +20,21 @@ const generateSession = async ({ userId, time, topic, formats }) => {
 
   let contentPool = [];
   if (topic === "ANY") {
-    contentPool = await prisma.content.findMany({
+    contentPool = await Prisma.content.findMany({
       where: {
         estimatedTime: { lte: Number(time) },
         id: { notIn: usedContentIds },
       },
     });
     if (contentPool.length === 0) {
-      contentPool = await prisma.content.findMany({
+      contentPool = await Prisma.content.findMany({
         where: {
           estimatedTime: { lte: Number(time) },
         },
       });
     }
   } else {
-    contentPool = await prisma.content.findMany({
+    contentPool = await Prisma.content.findMany({
       where: {
         topic: topic,
         estimatedTime: { lte: Number(time) },
@@ -43,7 +43,7 @@ const generateSession = async ({ userId, time, topic, formats }) => {
     });
 
     if (contentPool.length === 0) {
-      contentPool = await prisma.content.findMany({
+      contentPool = await Prisma.content.findMany({
         where: {
           topic: topic.toUpperCase(),
           estimatedTime: { lte: Number(time) },
