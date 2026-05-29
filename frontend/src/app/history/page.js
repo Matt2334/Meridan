@@ -1,6 +1,9 @@
 "use client";
 import styled from "styled-components";
 import { fadeUp } from "../../components/keys";
+import { useState, useEffect } from "react";
+import HistoryCard from "../../components/historyCard.js";
+import Pagination from "../../components/Pagination.js";
 
 const Wrapper = styled.div`
   max-width: 720px;
@@ -32,24 +35,43 @@ const Content = styled.div`
   padding: 80px 0;
 `;
 
-const sessions = [];
 export default function History() {
+  const [loading, setLoading] = useState(true);
+  const [sessions, setSessions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  useEffect(()=>{
+    const fetchSessions = async()=>{
+      try{
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions?offset=${(page - 1) * 5}`, {method:"GET", credentials:"include", headers: {
+            "Content-Type": "application/json",
+          },});
+        const data = await res.json();
+        setSessions(data.sessions);
+        setTotalPages(Math.ceil(data.total / 5));
+      }catch(err){
+        console.error(err);
+      }
+    }
+    fetchSessions();
+  },[page])
   return (
     <Wrapper>
-      <HistoryTitle>Your sessions</HistoryTitle>
-      {sessions.length === 0 ? (
-        <p>No sessions yet</p>
-      ) : (
-        <p>Display sessions here</p>
-      )}
+      <HistoryTitle>Session history</HistoryTitle>
       {sessions.length === 0 ? (
         <Content>
           <EmptyTitle>Your history is empty</EmptyTitle>
           <EmptyParagraph>complete your first session to see it here</EmptyParagraph>
         </Content>
       ) : (
-        <Content>content</Content>
+        <>
+        {sessions.map((session, i)=>(
+          <HistoryCard key={session.id} session={session} />
+        ))}
+        <Pagination page={page} totalPages={totalPages} setChangePage={setPage} />
+        </>
       )}
+      
     </Wrapper>
   );
 }

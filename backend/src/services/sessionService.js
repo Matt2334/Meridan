@@ -12,7 +12,7 @@ const generateSession = async ({ userId, time, topic, formats }) => {
 
   const usedContentIds = await Prisma.sessionItem
     .findMany({
-      where: { session: { userId } },
+      where: { session: { userId }, completed:true },
       select: { contentId: true },
     })
     .then((items) => items.map((item) => item.contentId));
@@ -51,7 +51,6 @@ const generateSession = async ({ userId, time, topic, formats }) => {
       });
     }
   }
-  console.log(contentPool)
   const selected = fitContentToTime(contentPool, time);
   if (selected.length === 0) {
     throw new Error("No content available for the selected topic and time");

@@ -59,7 +59,6 @@ export default function Navbar() {
                 credentials: 'include',
             });
             const data = await res.json();
-            console.log(data);
             if (data.authenticated) {
                 setIsSignedIn(true);
             } else {

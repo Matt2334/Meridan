@@ -56,6 +56,7 @@ export default function Session() {
   const [percentage, setPercentage] = useState(0);
   const [contents, setContents] = useState([]);
   const [signedIn, setSignedIn] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   useEffect(() => {
     const createSession = async () => {
       try {
@@ -72,7 +73,13 @@ export default function Session() {
           throw new Error("Failed to create session");
         }
         const data = await res.json();
-        setContents(data.sessionItems.map((item) => item.content));
+        setSessionId(data.id);
+        setContents(
+          data.sessionItems.map((item) => ({
+            ...item.content,
+            sessionItemId: item.id, 
+          })),
+        );
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -80,7 +87,8 @@ export default function Session() {
     };
     if (time && topic) createSession();
   }, [time, topic]);
-  const percentIncrement = contents.length > 0 ? 100 / contents.length : 0;
+  const percentIncrement =
+    contents.length > 0 ? Math.round(100 / contents.length) : 0;
   const updateProgress = () => {
     setPercentage((prev) => Math.min(100, prev + percentIncrement));
   };
@@ -144,6 +152,7 @@ export default function Session() {
                 content={content}
                 index={i + 1}
                 key={content.id}
+                sessionId={sessionId}
                 updateProgress={updateProgress}
                 removeProgress={removeProgress}
               />

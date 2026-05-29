@@ -3,7 +3,8 @@ import styled from "styled-components";
 import { useState } from "react";
 
 const Wrapper = styled.div`
-  background: #faf9f7;
+  background: ${({ $marked }) =>
+    $marked ? "rgb(212 211 209 / 50%)" : "#faf9f7"};
   border: 1px solid rgba(28, 28, 30, 0.1);
   border-radius: 16px;
   padding: 24px 28px;
@@ -81,29 +82,35 @@ const Button = styled.a`
 export default function Card({
   content,
   index,
+  sessionId,
   updateProgress,
   removeProgress,
 }) {
   const [marked, setMarked] = useState(false);
-  // const handleProgress = () => {
-  //     updateProgress(index);
-  //     setMarked(!marked);
-  // }
-  // const handleRemoveProgress = () => {
-  //     removeProgress(index);
-  //     setMarked(false);
-  // }
-  const handleProgress = () => {
+  const handleProgress = async () => {
     if (marked) {
       removeProgress();
     } else {
       updateProgress();
+      if (sessionId) {
+      try {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}/items/${content.sessionItemId}/read`,
+          {
+            method: "PATCH",
+            credentials: "include",
+          }
+        );
+      } catch (err) {
+        console.error(err);
+      }
     }
-
+    }
     setMarked(!marked);
   };
+  
   return (
-    <Wrapper>
+    <Wrapper $marked={marked}>
       <span className="time">{index}</span>
       <div>
         <Title>{content.title}</Title>
