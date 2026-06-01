@@ -68,7 +68,7 @@ const getSession = async (req, res) => {
 
 // router.patch('/sessions/:id/complete', authJWT, sessionComplete);
 const sessionComplete = async (req, res) => {
-  const userId = req.user?.userId;
+  const userId = req.user?.userId;  
   const { id } = req.params;
   try {
     const session = await Prisma.session.findUnique({

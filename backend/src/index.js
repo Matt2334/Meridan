@@ -9,6 +9,7 @@ const db = require('./db');
 const usersRouter = require('./routes/users');
 const contentRouter = require('./routes/content');
 const sessionRouter = require('./routes/sessions');
+const bookmarkRouter = require('./routes/bookmark');
 const { generalLimiter } = require('./middleware/rateLimiters');
 const app = express();
 
@@ -31,9 +32,9 @@ app.get('/health', async (req, res) => {
 });
 
 app.use('/users', usersRouter);
-
 app.use('/', contentRouter);
 app.use('/', sessionRouter);
+app.use('/', bookmarkRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));

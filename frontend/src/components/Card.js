@@ -1,7 +1,7 @@
 "use client";
 import styled from "styled-components";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { IconBookmark} from "@tabler/icons-react";
 const Wrapper = styled.div`
   background: ${({ $marked }) =>
     $marked ? "rgb(212 211 209 / 50%)" : "#faf9f7"};
@@ -78,7 +78,12 @@ const Button = styled.a`
     box-shadow: 0 4px 20px rgba(28, 28, 30, 0.15);
     `}
 `;
-
+const Book = styled.span`
+    svg{
+      height: 16px;
+      fill: ${({ $booked }) => ($booked ? "#1c1c1e" : "none")};
+    }
+`;
 export default function Card({
   content,
   index,
@@ -93,22 +98,54 @@ export default function Card({
     } else {
       updateProgress();
       if (sessionId) {
-      try {
-        await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}/items/${content.sessionItemId}/read`,
-          {
-            method: "PATCH",
-            credentials: "include",
-          }
-        );
-      } catch (err) {
-        console.error(err);
+        try {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}/items/${content.sessionItemId}/read`,
+            {
+              method: "PATCH",
+              credentials: "include",
+            },
+          );
+        } catch (err) {
+          console.error(err);
+        }
       }
-    }
     }
     setMarked(!marked);
   };
-  
+  const [booked, setBooked] = useState(false);
+  useEffect(() => {
+  const checkBookmark = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookmark/${content.id}`,
+        { method: "GET", credentials: "include" }
+      );
+      const data = await res.json();
+      setBooked(data.bookmarked);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  checkBookmark();
+}, [content.id]);
+
+  const handleBookmark = async () => {
+    const wasBooked = booked;
+    setBooked((prev) => !prev);
+    try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookmark`, {
+      method: wasBooked ? "DELETE" : "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contentId: content.id }),
+    });
+    if (!res.ok) throw new Error("Failed to update bookmark");
+  } catch (err) {
+    setBooked(wasBooked); 
+    console.error(err);
+  }
+  };
   return (
     <Wrapper $marked={marked}>
       <span className="time">{index}</span>
@@ -125,6 +162,9 @@ export default function Card({
           </Button>
         </CardFooter>
       </div>
+      <Book onClick={handleBookmark} $booked={booked}>
+        <IconBookmark />
+      </Book>
     </Wrapper>
   );
 }
