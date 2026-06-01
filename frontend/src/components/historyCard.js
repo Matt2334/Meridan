@@ -102,8 +102,8 @@ export default function HistoryCard({ session }) {
   const month = date.toLocaleString("default", { month: "short" });
   const isComplete = !!session.completedAt;
   const itemCount = session.sessionItems?.length || 0;
-  const topic =
-    itemCount > 0 ? session.sessionItems[0].content?.topic : "Learning Session";
+  const topic = session.topic || "Learning Session";
+
   return (
     <Wrapper>
       <DateBlock>

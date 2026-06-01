@@ -64,6 +64,7 @@ model Session{
   engagementData Json?
   createdAt DateTime @default(now())
   completedAt DateTime?
+  topic String
 
   user User @relation(fields:[userId], references:[id])
   sessionItems SessionItem[]

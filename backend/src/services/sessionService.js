@@ -67,6 +67,7 @@ const generateSession = async ({ userId, time, topic, formats }) => {
           orderIndex: index,
         })),
       },
+      topic: topic.toUpperCase(),
     },
     include: {
       sessionItems: {

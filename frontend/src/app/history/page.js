@@ -58,7 +58,7 @@ export default function History() {
   return (
     <Wrapper>
       <HistoryTitle>Session history</HistoryTitle>
-      {sessions.length === 0 ? (
+      {!sessions || sessions.length === 0 ? (
         <Content>
           <EmptyTitle>Your history is empty</EmptyTitle>
           <EmptyParagraph>complete your first session to see it here</EmptyParagraph>
