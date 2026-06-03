@@ -10,6 +10,7 @@ const usersRouter = require('./routes/users');
 const contentRouter = require('./routes/content');
 const sessionRouter = require('./routes/sessions');
 const bookmarkRouter = require('./routes/bookmark');
+const aiRouter = require('./routes/ai');
 const { generalLimiter } = require('./middleware/rateLimiters');
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/users', usersRouter);
 app.use('/', contentRouter);
 app.use('/', sessionRouter);
 app.use('/', bookmarkRouter);
+app.use('/', aiRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));

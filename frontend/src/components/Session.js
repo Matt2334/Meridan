@@ -77,7 +77,7 @@ export default function Session() {
         setContents(
           data.sessionItems.map((item) => ({
             ...item.content,
-            sessionItemId: item.id, 
+            sessionItemId: item.id,
           })),
         );
         setLoading(false);
@@ -114,6 +114,18 @@ export default function Session() {
     };
     checkAuth();
   }, []);
+  const handleTest = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}/takeaways`,
+        { method: "POST", credentials: "include" },
+      );
+      const data = await res.json();
+      console.log(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   return (
     <Wrapper>
       <Meta>
@@ -143,7 +155,7 @@ export default function Session() {
           }}
         ></div>
       </Progress>
-
+        <button onClick={handleTest}>Test</button>
       <Content>
         {loading
           ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)

@@ -1,4 +1,3 @@
-const { get } = require("node:http");
 const { Prisma } = require("../../prisma/library/prisma");
 
 const createBookmark = async (req, res) => {
