@@ -2,6 +2,7 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { IconLogout, IconSettings, IconUser, IconBookmark } from "@tabler/icons-react";
+import {useRouter} from "next/navigation";
 const Wrapper = styled.div`
   z-index: 100;
   padding: 20px 48px;
@@ -106,6 +107,7 @@ const DropButton = styled.button`
 `;
 export default function Navbar() {
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const router = useRouter();
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -138,9 +140,8 @@ export default function Navbar() {
           credentials: "include",
         },
       );
-      if (res.ok) {
-        setIsSignedIn(false);
-      }
+      if (res.ok) setIsSignedIn(false);
+      router.push("/signin");
     } catch (err) {
       console.error("Error signing out:", err);
     }

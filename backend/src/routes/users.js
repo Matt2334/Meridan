@@ -11,7 +11,7 @@ router.delete('/delete', authJWT, deleteUser);
 router.post('/signout', authJWT, signOut);
 router.get('/me', authJWT, userInfo);
 router.get('/loggedIn', loggedIn);
-router.put('/update', authJWT, updateUser);
+router.patch('/update', authJWT, updateUser);
 
 
 module.exports = router;

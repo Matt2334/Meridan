@@ -1,8 +1,8 @@
-# Meridian
+# Meridan
 
 > Turn spare time into intelligence.
 
-Meridian is a time-calibrated learning platform that generates curated reading 
+Meridan is a time-calibrated learning platform that generates curated reading 
 sessions based on how much time you have and what you want to learn. 
 Select 5, 10, 30, or 60 minutes, choose a topic, and get a precisely 
 fitted session of open-access content with key insights and conversation 

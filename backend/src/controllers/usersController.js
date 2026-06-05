@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 
 // router.post('/signout', signOut);
 const signOut = async (req, res) => {
-  const userId = req?.user.id;
+  const userId = req.user?.userId;
   try {
     // await Prisma.sessions.deleteMany({ where: { userId } });
     res.clearCookie("token");
@@ -17,12 +17,12 @@ const signOut = async (req, res) => {
 
 // router.post('/signup', signUp);
 const signUp = async (req, res) => {
-  const { email, password, preferences } = req.body;
-  // should we store name and reading speed?
+  const { email, password, name, preferences } = req.body;
+  // should we store reading speed?
   try {
     const p = await bcrypt.hash(password, 10);
     const user = await Prisma.user.create({
-      data: { email: email, password: p, preferences: preferences },
+      data: { email: email, name: name? name: 'John Doe', password: p, preferences: preferences },
     });
     const token = jwt.sign(
       { userId: user.id, email: user.email },
@@ -71,7 +71,7 @@ const signIn = async (req, res) => {
 
 // router.delete('/delete', deleteUser);
 const deleteUser = async (req, res) => {
-  const userId = req?.user.id;
+  const userId = req.user?.userId;
   try {
     const user = await Prisma.user.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -87,9 +87,15 @@ const deleteUser = async (req, res) => {
 
 // router.get('/me', userInfo);
 const userInfo = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user?.userId;
   try {
-    const user = await Prisma.user.findUnique({ where: { id: userId } });
+    const user = await Prisma.user.findUnique({ where: { id: userId }, select: {
+    id: true,
+    email: true,
+    name: true,
+    role: true,
+    createdAt: true,
+  } });
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user);
   } catch (err) {
@@ -100,12 +106,14 @@ const userInfo = async (req, res) => {
 
 // router.put('/update', updateUser);
 const updateUser = async (req, res) => {
-  const { name, email, preferences } = req.body;
+  // const { preferences } = req.body;
+  const {email, name} = req.body;
   const userId = req?.user.id;
   try {
-    const user = await Prisma.user.update({
+    const user = await Prisma.user.patch({
       where: { id: userId },
-      data: { name, email, preferences },
+      data: { email, name },
+      // data: {preferences },
     });
     if (!user) return res.status(404).json({ error: "User not found" });
     res.json(user);

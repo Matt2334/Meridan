@@ -35,7 +35,7 @@ const generateTakeaways = async (req, res) => {
     const r = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: `
-You are a learning assistant for Meridian, an intellectual learning platform.
+You are a learning assistant for Meridan, an intellectual learning platform.
 
 Based on the following articles from a learning session, generate:
 1. Four concise bullet point takeaways (the most important ideas across all articles)
