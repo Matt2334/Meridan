@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Card from "./Card";
 import CardSkeleton from "./cardSkeleton";
+import SessionComplete from "./sessionComplete";
 const Wrapper = styled.div`
   max-width: 720px;
   margin: 0 auto;
@@ -52,11 +53,14 @@ export default function Session() {
   const searchParams = useSearchParams();
   const time = searchParams.get("time");
   const topic = searchParams.get("topic");
+  const idempotencyKey = searchParams.get('key');
   const [loading, setLoading] = useState(true);
   const [percentage, setPercentage] = useState(0);
   const [contents, setContents] = useState([]);
   const [signedIn, setSignedIn] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  
+  console.log(idempotencyKey);
   useEffect(() => {
     const createSession = async () => {
       try {
@@ -65,6 +69,7 @@ export default function Session() {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            "Idempotency-Key": idempotencyKey,
           },
           body: JSON.stringify({ time, topic }),
         });
@@ -114,18 +119,6 @@ export default function Session() {
     };
     checkAuth();
   }, []);
-  const handleTest = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}/takeaways`,
-        { method: "POST", credentials: "include" },
-      );
-      const data = await res.json();
-      console.log(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
   return (
     <Wrapper>
       <Meta>
@@ -155,7 +148,7 @@ export default function Session() {
           }}
         ></div>
       </Progress>
-        <button onClick={handleTest}>Test</button>
+      {percentage===100 && <SessionComplete sessionId={sessionId} />}
       <Content>
         {loading
           ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)

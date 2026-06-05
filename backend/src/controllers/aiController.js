@@ -16,6 +16,12 @@ const generateTakeaways = async (req, res) => {
     if (!session) return res.status(404).json({ message: "Session not found" });
     if (session.userId !== userId)
       return res.status(403).json({ error: "Unauthorized" });
+    if (session.takeaways && session.talkingPoints){
+        return res.status(200).json({
+            takeaways: session.takeaways,
+            conversationStarters: session.talkingPoints
+        });
+    }
     const contentSummaryArr = await Promise.all(
       session.sessionItems.map(async (item, i) => {
         const content = await Prisma.content.findUnique({
@@ -39,7 +45,7 @@ ${contentSummary}
 
 Respond in this exact JSON format with no preamble:
 {
-  "takeaways": ["takeaway 1", "takeaway 2", "takeaway 3", "takeaway 4"],
+  "takeaways": ["takeaway 1", "takeaway 2", "takeaway 3"],
   "conversationStarters": ["question 1", "question 2"]
 }
         `,
@@ -62,6 +68,18 @@ Respond in this exact JSON format with no preamble:
   }
 };
 
+// cross topic connections might add after changing the content schema to include more metadata. 
+// const crossConnections = async (req,res)=>{
+//     const userId = req.user?.userId;
+//     try{
+
+//     }catch(err){
+//         console.error(err);
+//         res.status(500).json({ error: err.message });
+//     }
+// }
+
 module.exports = {
   generateTakeaways,
+//   crossConnections
 };

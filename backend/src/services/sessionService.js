@@ -1,5 +1,5 @@
 const { Prisma } = require("../../prisma/library/prisma");
-const generateSession = async ({ userId, time, topic, formats }) => {
+const generateSession = async ({ userId, time, topic, formats, idempotencyKey }) => {
   const parsedTime = Number(time);
 
   if (Number.isNaN(parsedTime)) {
@@ -56,28 +56,28 @@ const generateSession = async ({ userId, time, topic, formats }) => {
     throw new Error("No content available for the selected topic and time");
   }
 
-  const session = await Prisma.session.create({
-    data: {
-      userId,
-      timeAvailable: time,
-      sessionType: selected.length === 1 ? "SINGLE" : "BUNDLE",
-      sessionItems: {
-        create: selected.map((item, index) => ({
-          contentId: item.id,
-          orderIndex: index,
-        })),
-      },
-      topic: topic.toUpperCase(),
+  const session = await Prisma.session.upsert({
+  where: { idempotencyKey },
+  update: {}, // do nothing if exists
+  create: {
+    userId,
+    timeAvailable: time,
+    topic: topic.toUpperCase(),
+    sessionType: selected.length === 1 ? "SINGLE" : "BUNDLE",
+    idempotencyKey,
+    sessionItems: {
+      create: selected.map((item, index) => ({
+        contentId: item.id,
+        orderIndex: index,
+      })),
     },
-    include: {
-      sessionItems: {
-        include: {
-          content: true,
-        },
-      },
-    },
-  });
-
+  },
+  include: {
+    sessionItems: {
+      include: { content: true }
+    }
+  }
+});
   return session;
 };
 

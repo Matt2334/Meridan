@@ -28,7 +28,21 @@ const getPastSessions = async (req, res) => {
 const createSession = async (req, res) => {
   const userId = req.user?.userId;
   const { time, topic, formats } = req.body;
+  const idempotencyKey = req.headers['idempotency-key'];
   try {
+    // check for existing session with same idempotency key to prevent duplicates on retry
+    if (idempotencyKey) {
+      const existing = await Prisma.session.findUnique({
+        where: { idempotencyKey },
+        include: {
+          sessionItems: {
+            include: { content: true }
+          }
+        }
+      });
+      if (existing) return res.status(201).json(existing); // return existing session
+    }
+    
     if (!time || !topic) {
       return res.status(400).json({ error: "time and topic are required" });
     }
@@ -40,8 +54,9 @@ const createSession = async (req, res) => {
       time: Number(time),
       topic: topic.toUpperCase(),
       formats,
+      idempotencyKey,
     });
-    return res.json(session);
+    return res.status(201).json(session);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
