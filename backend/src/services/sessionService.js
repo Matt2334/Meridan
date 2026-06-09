@@ -1,5 +1,11 @@
 const { Prisma } = require("../../prisma/library/prisma");
-const generateSession = async ({ userId, time, topic, formats, idempotencyKey }) => {
+const generateSession = async ({
+  userId,
+  time,
+  topic,
+  formats,
+  idempotencyKey,
+}) => {
   const parsedTime = Number(time);
 
   if (Number.isNaN(parsedTime)) {
@@ -12,7 +18,7 @@ const generateSession = async ({ userId, time, topic, formats, idempotencyKey })
 
   const usedContentIds = await Prisma.sessionItem
     .findMany({
-      where: { session: { userId }, completed:true },
+      where: { session: { userId }, completed: true },
       select: { contentId: true },
     })
     .then((items) => items.map((item) => item.contentId));
@@ -55,30 +61,39 @@ const generateSession = async ({ userId, time, topic, formats, idempotencyKey })
   if (selected.length === 0) {
     throw new Error("No content available for the selected topic and time");
   }
-
-  const session = await Prisma.session.upsert({
-  where: { idempotencyKey },
-  update: {}, // do nothing if exists
-  create: {
-    userId,
-    timeAvailable: time,
-    topic: topic.toUpperCase(),
-    sessionType: selected.length === 1 ? "SINGLE" : "BUNDLE",
-    idempotencyKey,
-    sessionItems: {
-      create: selected.map((item, index) => ({
-        contentId: item.id,
-        orderIndex: index,
-      })),
-    },
-  },
-  include: {
-    sessionItems: {
-      include: { content: true }
+  let session;
+  try {
+    session = await Prisma.session.upsert({
+      where: { idempotencyKey },
+      update: {}, // do nothing if exists
+      create: {
+        userId,
+        timeAvailable: time,
+        topic: topic.toUpperCase(),
+        sessionType: selected.length === 1 ? "SINGLE" : "BUNDLE",
+        idempotencyKey,
+        sessionItems: {
+          create: selected.map((item, index) => ({
+            contentId: item.id,
+            orderIndex: index,
+          })),
+        },
+      },
+      include: {
+        sessionItems: {
+          include: { content: true },
+        },
+      },
+    });
+    return session;
+  } catch (err) {
+    if(err && idempotencyKey){
+      const existing = await Prisma.session.findUnique({where:{idempotencyKey}})
+      if(existing) return existing
+      else console.error(err)
     }
   }
-});
-  return session;
+  
 };
 
 const fitContentToTime = (contentPool, time) => {

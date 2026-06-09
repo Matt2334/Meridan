@@ -1,6 +1,7 @@
 "use client";
 import styled from "styled-components";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 const Wrapper = styled.div``;
 
 const Divider = styled.div`
@@ -90,6 +91,7 @@ const DoneBtn = styled.button`
 export default function sessionComplete({sessionId }) {
   const [takeaways, setTakeaways] = useState(null);
   const [generatingTakeaways, setGeneratingTakeaways] = useState(false);
+  const router = useRouter();
 
   const handleComplete = async () => {
     setGeneratingTakeaways(true);

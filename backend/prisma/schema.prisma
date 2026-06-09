@@ -70,6 +70,8 @@ model Session{
 
   user User @relation(fields:[userId], references:[id])
   sessionItems SessionItem[]
+  connectionsFrom     SessionConnection[] @relation("from")
+  connectionsTo       SessionConnection[] @relation("to")
 }
 model SessionItem{
   id String @id @default(uuid())
@@ -94,4 +96,16 @@ model Bookmark{
   user User @relation(fields:[userId], references:[id])
   content Content @relation(fields:[contentId], references:[id])
   @@unique([userId, contentId])
+}
+
+model SessionConnection {
+  id           String  @id @default(uuid())
+  fromSessionId String
+  toSessionId   String
+  strength      Float   
+  reason        String? 
+
+  fromSession  Session @relation("from", fields: [fromSessionId], references: [id])
+  toSession    Session @relation("to", fields: [toSessionId], references: [id])
+  @@unique([fromSessionId, toSessionId])
 }

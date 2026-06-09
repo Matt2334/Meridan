@@ -104,19 +104,19 @@ const userInfo = async (req, res) => {
   }
 };
 
-// router.put('/update', updateUser);
+// router.patch('/update', updateUser);
 const updateUser = async (req, res) => {
-  // const { preferences } = req.body;
+  // const {preferences } = req.body;
   const {email, name} = req.body;
-  const userId = req?.user.id;
+  const userId = req.user?.userId;
   try {
-    const user = await Prisma.user.patch({
+    const user = await Prisma.user.update({
       where: { id: userId },
       data: { email, name },
       // data: {preferences },
     });
     if (!user) return res.status(404).json({ error: "User not found" });
-    res.json(user);
+    return res.status(200).json(user);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: err.message });
