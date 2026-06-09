@@ -16,11 +16,11 @@ const generateTakeaways = async (req, res) => {
     if (!session) return res.status(404).json({ message: "Session not found" });
     if (session.userId !== userId)
       return res.status(403).json({ error: "Unauthorized" });
-    if (session.takeaways && session.talkingPoints){
-        return res.status(200).json({
-            takeaways: session.takeaways,
-            conversationStarters: session.talkingPoints
-        });
+    if (session.takeaways && session.talkingPoints) {
+      return res.status(200).json({
+        takeaways: session.takeaways,
+        conversationStarters: session.talkingPoints,
+      });
     }
     const contentSummaryArr = await Promise.all(
       session.sessionItems.map(async (item, i) => {
@@ -57,8 +57,8 @@ Respond in this exact JSON format with no preamble:
       data: {
         takeaways: parsed.takeaways,
         talkingPoints: parsed.conversationStarters,
-        completedAt: new Date()
-      }
+        // completedAt: new Date(),
+      },
     });
 
     res.status(200).json(parsed);
@@ -68,7 +68,64 @@ Respond in this exact JSON format with no preamble:
   }
 };
 
-// cross topic connections might add after changing the content schema to include more metadata. 
+const crossConnections = async ({ id, userId }) => {
+  try {
+    const isConnection = await Prisma.sessionConnection.findMany({where:{fromSessionId:id}})
+    // if (isConnection) return "sucessful"
+    const session = await Prisma.session.findUnique({
+      where: { id, userId },
+      include: {
+        sessionItems: {
+          include: { content: true },
+        },
+      },
+    });
+    const pastSessions = await Prisma.session.findMany({
+      where: { id: { not: id }, userId, completedAt: { not: null } },
+      include: {
+        sessionItems: {
+          include: { content: true },
+        },
+      },
+    });
+    if (pastSessions.length === 0) return;
+    const r = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Given this completed session:
+Topic: ${session.topic}
+Content: ${session.sessionItems.map((i) => i.content.title).join(", ")}
+
+And these past sessions:
+${pastSessions.map(s => `- ID: ${s.id} | Topic: ${s.topic} | Content: ${s.sessionItems.map(i => i.content.title).join(", ")}`).join("\n")}
+
+Return a JSON array of connections with strength 0-1 and a one-sentence reason:
+[{ "sessionId": "...", "strength": 0.8, "reason": "Both explore..." }]
+Only include connections with strength > 0.3.
+`,
+    });
+    const raw = r.candidates[0].content.parts[0].text;
+    const clean = raw.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+    await Promise.all(
+      parsed.map((conn) => 
+        Prisma.sessionConnection.create({
+          data: {
+            fromSessionId: id,
+            toSessionId: conn.sessionId,
+            strength: conn.strength,
+            reason: conn.reason,
+          },
+        })
+      )
+    );
+  // console.log(connections)
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error creating connection")
+  }
+};
+
+// cross topic connections might add after changing the content schema to include more metadata.
 // const crossConnections = async (req,res)=>{
 //     const userId = req.user?.userId;
 //     try{
@@ -81,5 +138,5 @@ Respond in this exact JSON format with no preamble:
 
 module.exports = {
   generateTakeaways,
-//   crossConnections
+  crossConnections,
 };

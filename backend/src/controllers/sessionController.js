@@ -1,5 +1,6 @@
 const { Prisma } = require("../../prisma/library/prisma");
 const { generateSession } = require("../services/sessionService");
+const { crossConnections } = require("./aiController");
 
 // router.get('/sessions', authJWT, getPastSessions);
 const getPastSessions = async (req, res) => {
@@ -28,7 +29,7 @@ const getPastSessions = async (req, res) => {
 const createSession = async (req, res) => {
   const userId = req.user?.userId;
   const { time, topic, formats } = req.body;
-  const idempotencyKey = req.headers['idempotency-key'];
+  const idempotencyKey = req.headers["idempotency-key"];
   try {
     // check for existing session with same idempotency key to prevent duplicates on retry
     if (idempotencyKey) {
@@ -36,13 +37,13 @@ const createSession = async (req, res) => {
         where: { idempotencyKey },
         include: {
           sessionItems: {
-            include: { content: true }
-          }
-        }
+            include: { content: true },
+          },
+        },
       });
       if (existing) return res.status(201).json(existing); // return existing session
     }
-    
+
     if (!time || !topic) {
       return res.status(400).json({ error: "time and topic are required" });
     }
@@ -69,7 +70,7 @@ const getSession = async (req, res) => {
   const { id } = req.params;
   try {
     const session = await Prisma.session.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
     });
     if (!session) return res.status(404).json({ error: "Session not found" });
     if (session.userId !== userId)
@@ -83,19 +84,20 @@ const getSession = async (req, res) => {
 
 // router.patch('/sessions/:id/complete', authJWT, sessionComplete);
 const sessionComplete = async (req, res) => {
-  const userId = req.user?.userId;  
+  const userId = req.user?.userId;
   const { id } = req.params;
   try {
     const session = await Prisma.session.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
     });
     if (!session) return res.status(404).json({ error: "Session not found" });
     if (session.userId !== userId)
       return res.status(403).json({ error: "Unauthorized" });
     const updatedSession = await Prisma.session.update({
-      where: { id: parseInt(id) },
-      data: { completed: true },
+      where: { id: id },
+      data: { completedAt: new Date() },
     });
+    const connection = await crossConnections({ id, userId });
     res.json(updatedSession);
   } catch (err) {
     console.log(err);
@@ -129,10 +131,39 @@ const sessionItemRead = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+const getSessionConnections = async (req, res) => {
+  const userId = req.user?.userId;
+  try {
+    const user = await Prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const sessions = await Prisma.session.findMany({
+      where: { userId, completedAt: { not: null } },
+      select: { id: true, topic: true, timeAvailable: true, createdAt: true },
+    });
+    if (sessions.length === 0)
+      return res.json({ connections: [], sessions: [] });
+
+    const sessionIds = sessions.map((s) => s.id);
+    const connections = await Prisma.sessionConnection.findMany({
+      where: {
+        OR: [
+          { fromSessionId: { in: sessionIds } },
+          { toSessionId: { in: sessionIds } },
+        ],
+      },
+    });
+    res.json({ connections, sessions });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   createSession,
   getPastSessions,
   getSession,
   sessionComplete,
   sessionItemRead,
+  getSessionConnections,
 };

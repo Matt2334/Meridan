@@ -53,14 +53,13 @@ export default function Session() {
   const searchParams = useSearchParams();
   const time = searchParams.get("time");
   const topic = searchParams.get("topic");
-  const idempotencyKey = searchParams.get('key');
+  const idempotencyKey = searchParams.get("key");
   const [loading, setLoading] = useState(true);
   const [percentage, setPercentage] = useState(0);
   const [contents, setContents] = useState([]);
   const [signedIn, setSignedIn] = useState(false);
   const [sessionId, setSessionId] = useState(null);
-  
-  console.log(idempotencyKey);
+
   useEffect(() => {
     const createSession = async () => {
       try {
@@ -92,15 +91,16 @@ export default function Session() {
     };
     if (time && topic) createSession();
   }, [time, topic]);
-  const percentIncrement =
-    contents.length > 0 ? Math.round(100 / contents.length) : 0;
+  const v = contents.length > 0 ? 100 / contents.length : 0;
   const updateProgress = () => {
-    setPercentage((prev) => Math.min(100, prev + percentIncrement));
+    setPercentage((prev) => Math.min(100, prev + v));
   };
 
   const removeProgress = () => {
-    setPercentage((prev) => Math.max(0, prev - percentIncrement));
+    setPercentage((prev) => Math.max(0, prev - v));
   };
+
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -119,6 +119,30 @@ export default function Session() {
     };
     checkAuth();
   }, []);
+  const sessionComplete = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}/complete`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const data = await res.json();
+
+    } catch (err) {
+      console.error(err)
+    }
+  };
+  
+   useEffect(() => {
+    if (percentage === 100) {
+      sessionComplete();
+    }
+  }, [percentage]);
   return (
     <Wrapper>
       <Meta>
@@ -128,7 +152,7 @@ export default function Session() {
       <Progress>
         <ProgressHeader>
           <span>Progress</span>
-          <span>{percentage}%</span>
+          <span>{Math.round(percentage)}%</span>
         </ProgressHeader>
         <div
           style={{
@@ -148,7 +172,7 @@ export default function Session() {
           }}
         ></div>
       </Progress>
-      {percentage===100 && <SessionComplete sessionId={sessionId} />}
+      {percentage === 100 && <SessionComplete sessionId={sessionId} />}
       <Content>
         {loading
           ? Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)

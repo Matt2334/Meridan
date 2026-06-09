@@ -45,7 +45,9 @@ export default function History() {
   const [totalPages, setTotalPages] = useState(1);
   const [view, setView] = useState('list');
   const [connections, setConnections] = useState([]);
+  const [graphSessions, setGraphSessions] = useState([])
   useEffect(()=>{
+    if (view !== 'list') return;
     const fetchSessions = async()=>{
       try{
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions?offset=${(page - 1) * 5}`, {method:"GET", credentials:"include", headers: {
@@ -59,8 +61,9 @@ export default function History() {
       }
     }
     fetchSessions();
-  },[page])
+  },[page,view])
   useEffect(()=>{
+    if (view !== 'grid') return;
     const fetchConnections = async()=>{
       try{
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/session/connections`, {
@@ -69,13 +72,13 @@ export default function History() {
           headers:{ "Content-Type": "application/json",}
         })
         const data = await res.json();
-        console.log(data)
         setConnections(data.connections)
+        setGraphSessions(data.sessions)
 
       }catch(err){console.error(err)}
     }
     fetchConnections();
-  },[])
+  },[view])
   return (
     <Wrapper>
       <HistoryTitle>Session history</HistoryTitle>
@@ -98,7 +101,7 @@ export default function History() {
           connections.length===0 ? (
             <h1>No connections available</h1>
           ) : (
-            <KnowledgeGraph sessions={sessions} connections={connections} />
+            <KnowledgeGraph sessions={graphSessions} connections={connections} />
           )
         )}
         
