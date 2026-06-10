@@ -17,26 +17,79 @@ const HistoryTitle = styled.h2`
   font-size: clamp(2rem, 3.5vw, 2.8rem);
   font-weight: 300;
   color: #1c1c1e;
+  margin: 0;
+`;
+const ToggleWrap = styled.div`
+  display: flex;
+  gap: 4px;
+  background: var(--color-background-secondary);
+  padding: 4px;
+  border-radius: 50px;
+  border: 0.5px solid rgba(28,28,30,0.1);
+`;
+const ToggleBtn = styled.button`
+  padding: 7px 18px;
+  border-radius: 50px;
+  border: ${({ $active }) => $active ? '0.5px solid rgba(28,28,30,0.1)' : 'none'};
+  background: ${({ $active }) => $active ? '#faf9f7' : 'transparent'};
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: ${({ $active }) => $active ? '500' : '400'};
+  color: ${({ $active }) => $active ? '#1c1c1e' : '#6b6b6f'};
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+`;
+const EmptyWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  text-align: center;
+`;
+const EmptyIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(28,28,30,0.04);
+  border: 0.5px solid rgba(28,28,30,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+`;
+const EmptyTitle = styled.p`
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #6b6b6f;
   margin-bottom: 8px;
 `;
-const EmptyTitle = styled.h3`
-  font-family: "Cormorant Garamond", serif;
-  font-size: 1.6rem;
-  font-weight: 300;
-  color: #6b6b6f;
-  margin-bottom: 10px;
-`;
-const EmptyParagraph = styled.p`
-  font-size: 0.88rem;
+const EmptySub = styled.p`
+  font-size: 0.85rem;
   color: #6b6b6f;
   font-weight: 300;
 `;
-const Content = styled.div`
+const NoConnWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
   text-align: center;
-  padding: 80px 0;
+  background: rgba(28,28,30,0.02);
+  border-radius: 16px;
+  border: 0.5px solid rgba(28,28,30,0.08);
 `;
-const ToggleButton = styled.button``;
-
 
 export default function History() {
   const [loading, setLoading] = useState(true);
@@ -63,7 +116,7 @@ export default function History() {
     fetchSessions();
   },[page,view])
   useEffect(()=>{
-    if (view !== 'grid') return;
+    if (view !== 'graph') return;
     const fetchConnections = async()=>{
       try{
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/session/connections`, {
@@ -81,33 +134,52 @@ export default function History() {
   },[view])
   return (
     <Wrapper>
-      <HistoryTitle>Session history</HistoryTitle>
-      {!sessions || sessions.length === 0 ? (
-        <Content>
-          <EmptyTitle>Your history is empty</EmptyTitle>
-          <EmptyParagraph>complete your first session to see it here</EmptyParagraph>
-        </Content>
-      ) : (
+  <HeaderRow>
+    <HistoryTitle>Session history</HistoryTitle>
+    <ToggleWrap>
+      <ToggleBtn $active={view === 'list'} onClick={() => setView('list')}>
+        <i className="ti ti-layout-list" aria-hidden="true"></i>
+        List
+      </ToggleBtn>
+      <ToggleBtn $active={view === 'graph'} onClick={() => setView('graph')}>
+        <i className="ti ti-chart-dots" aria-hidden="true"></i>
+        Graph
+      </ToggleBtn>
+    </ToggleWrap>
+  </HeaderRow>
+
+  {!sessions || sessions.length === 0 ? (
+    <EmptyWrap>
+      <EmptyIcon>
+        <i className="ti ti-history" style={{ fontSize: 20, color: '#6b6b6f' }} aria-hidden="true"></i>
+      </EmptyIcon>
+      <EmptyTitle>Your history is empty</EmptyTitle>
+      <EmptySub>Complete your first session to see it here</EmptySub>
+    </EmptyWrap>
+  ) : (
+    <>
+      {view === 'list' ? (
         <>
-        <ToggleButton onClick={()=>setView(view === 'list' ? 'grid' : 'list')}>{view === 'list' ? 'Grid view' : 'List view'}</ToggleButton>
-        {view==='list' ? (
-          <>
-            {sessions.map((session, i)=>(
-              <HistoryCard key={session.id} session={session} />
-            ))}
-            <Pagination page={page} totalPages={totalPages} setChangePage={setPage} />
-          </>
-        ) : (
-          connections.length===0 ? (
-            <h1>No connections available</h1>
-          ) : (
-            <KnowledgeGraph sessions={graphSessions} connections={connections} />
-          )
-        )}
-        
+          {sessions.map(session => (
+            <HistoryCard key={session.id} session={session} />
+          ))}
+          <Pagination page={page} totalPages={totalPages} setChangePage={setPage} />
         </>
+      ) : (
+        connections.length === 0 ? (
+          <NoConnWrap>
+            <EmptyIcon>
+              <i className="ti ti-chart-dots" style={{ fontSize: 20, color: '#6b6b6f' }} />
+            </EmptyIcon>
+            <EmptyTitle>No connections yet</EmptyTitle>
+            <EmptySub>Complete more sessions to see how your learning connects across topics</EmptySub>
+          </NoConnWrap>
+        ) : (
+          <KnowledgeGraph sessions={graphSessions} connections={connections} />
+        )
       )}
-      
-    </Wrapper>
+    </>
+  )}
+</Wrapper>
   );
 }

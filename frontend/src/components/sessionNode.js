@@ -18,13 +18,12 @@ const Popup = styled.div`
   display: ${({ $visible }) => ($visible ? "flex" : "none")};
   flex-direction: column;
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
+//   bottom: calc(100% + 8px);
+  left: 90%;
   background: #faf9f7;
   border: 0.5px solid rgba(28,28,30,0.1);
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   min-width: 160px;
   pointer-events: none;
   z-index: 10;
@@ -36,6 +35,7 @@ const Meta = styled.div`
   font-weight: 300;
   display: flex;
   gap: 6px;
+  text-align: center;
 `;
 const Topic = styled.p`
   color: #4a6fa5;
@@ -43,6 +43,7 @@ const Topic = styled.p`
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  margin: 0;
 `;
 const Title = styled.p`
   font-family: "Cormorant Garamond", serif;
@@ -67,7 +68,9 @@ export default function SessionNode({ data }) {
         <Topic>{data.topic}</Topic>
         <Title>{data.title}</Title>
         <Meta>
-          <span>{data.date}</span>.<span>{data.time}</span>
+          <span>{data.date}</span>
+          <span>.</span>
+          <span>{data.time} min</span>
         </Meta>
       </Popup>
     </Wrapper>
