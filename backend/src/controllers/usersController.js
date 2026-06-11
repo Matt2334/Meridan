@@ -25,7 +25,7 @@ const signUp = async (req, res) => {
       data: { email: email, name: name? name: 'John Doe', password: p, preferences: preferences },
     });
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role:user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
@@ -52,7 +52,7 @@ const signIn = async (req, res) => {
     if (!pMatch) return res.status(401).json({ error: "Invalid password" });
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role:user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );

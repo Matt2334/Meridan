@@ -1,32 +1,57 @@
-const { Prisma } = require("../../prisma/library/prisma");
-const { generateSession } = require("../services/sessionService");
-const { crossConnections } = require("./aiController");
+import { Prisma } from "../../prisma/library/prisma";
+import { Request, Response } from "express";
+import { generateSession } from "../services/sessionService";
+import { crossConnections } from "./aiController";
+import {
+  GetSessionsQuery,
+  GetSessionsResponse,
+  CreateSessionRequest,
+  GetSessionByParams,
+  SessionItemCompleteParams,
+  SessionItemResponse,
+  ErrorResponse
+} from "../types";
+
+// Request<Params, ResBody, ReqBody, QueryParams>
 
 // router.get('/sessions', authJWT, getPastSessions);
-const getPastSessions = async (req, res) => {
-  const userId = req.user?.userId;
-  const { limit = 5, offset = 0 } = req.query;
+interface PastSessions {
+  sessions: GetSessionsResponse[];
+  total: number;
+}
+const getPastSessions = async (
+  req: Request<{}, {}, {}, GetSessionsQuery>,
+  res: Response<PastSessions | ErrorResponse>,
+): Promise<void> => {
+  const userId = req.user?.userId as string;
+  const { limit = "5", offset = "0" } = req.query;
   try {
     const user = await Prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return res.status(404).json({ error: "User not found" });
-    const sessions = await Prisma.session.findMany({
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    const [sessions, total] = await Prisma.$transaction([
+      Prisma.session.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: parseInt(limit),
       skip: parseInt(offset),
-    });
+    }),
+    Prisma.session.count({ where: { userId } })
+  ]);
     res.json({
       sessions,
-      total: await Prisma.session.count({ where: { userId } }),
+      total,
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
   }
 };
 
 // router.post('/sessions', authJWT, generateSession);
-const createSession = async (req, res) => {
+const createSession = async (req:Request<{}, {}, CreateSessionRequest>, res:Response<GetSessionsResponse| ErrorResponse>):Promise<void> => {
   const userId = req.user?.userId;
   const { time, topic, formats } = req.body;
   const idempotencyKey = req.headers["idempotency-key"];
@@ -41,14 +66,15 @@ const createSession = async (req, res) => {
           },
         },
       });
-      if (existing) return res.status(201).json(existing); // return existing session
+      if (existing) {res.status(201).json(existing); // return existing session
+        return;}
     }
 
     if (!time || !topic) {
-      return res.status(400).json({ error: "time and topic are required" });
+       {res.status(400).json({ error: "time and topic are required" });return;}
     }
     const user = await Prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user)  {res.status(404).json({ error: "User not found" });return;}
 
     const session = await generateSession({
       userId,
@@ -57,81 +83,101 @@ const createSession = async (req, res) => {
       formats,
       idempotencyKey,
     });
-    return res.status(201).json(session);
+    res.status(201).json(session);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
+  }
+};
+
+// router.get('/sessions/:id', authJWT, getSession);
+const getSession = async (req:Request<GetSessionByParams>, res:Response<GetSessionsResponse | ErrorResponse>): Promise<void> => {
+  const userId = req.user?.userId;
+  const { id } = req.params;
+  try {
+    const session = await Prisma.session.findUnique({
+      where: { id: id },
+    });
+    if (!session)  {res.status(404).json({ error: "Session not found" });return;}
+    if (session.userId !== userId)
+       {res.status(403).json({ error: "Unauthorized" });return;}
+    res.json(session);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
+  }
+};
+
+// router.patch('/sessions/:id/complete', authJWT, sessionComplete);
+const sessionComplete = async (req:Request<GetSessionByParams>, res:Response<GetSessionsResponse|ErrorResponse>):Promise<void> => {
+  const userId = req.user?.userId;
+  const { id } = req.params;
+  try {
+    const session = await Prisma.session.findUnique({
+      where: { id: id },
+    });
+    if (!session)  {res.status(404).json({ error: "Session not found" });return;}
+    if (session.userId !== userId)
+     {res.status(403).json({ error: "Unauthorized" });return;}
+    const updatedSession = await Prisma.session.update({
+      where: { id: id },
+      data: { completedAt: new Date() },
+    });
+    await crossConnections({ id, userId });
+    res.json(updatedSession);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// router.get('/sessions/:id', authJWT, getSession);
-const getSession = async (req, res) => {
-  const userId = req.user?.userId;
-  const { id } = req.params;
-  try {
-    const session = await Prisma.session.findUnique({
-      where: { id: id },
-    });
-    if (!session) return res.status(404).json({ error: "Session not found" });
-    if (session.userId !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
-    res.json(session);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// router.patch('/sessions/:id/complete', authJWT, sessionComplete);
-const sessionComplete = async (req, res) => {
-  const userId = req.user?.userId;
-  const { id } = req.params;
-  try {
-    const session = await Prisma.session.findUnique({
-      where: { id: id },
-    });
-    if (!session) return res.status(404).json({ error: "Session not found" });
-    if (session.userId !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
-    const updatedSession = await Prisma.session.update({
-      where: { id: id },
-      data: { completedAt: new Date() },
-    });
-    const connection = await crossConnections({ id, userId });
-    res.json(updatedSession);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
 // '/sessions/:sessionId/items/:itemId/read'
-const sessionItemRead = async (req, res) => {
+const sessionItemRead = async (req:Request<SessionItemCompleteParams>, res:Response<SessionItemResponse|ErrorResponse>):Promise<void> => {
   const userId = req.user?.userId;
   const { sessionId, itemId } = req.params;
   try {
     const session = await Prisma.session.findUnique({
       where: { id: sessionId },
     });
-    if (!session) return res.status(404).json({ error: "Session not found" });
+    if (!session)  {res.status(404).json({ error: "Session not found" });return;}
     if (session.userId !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
+      { res.status(403).json({ error: "Unauthorized" });return;}
     const sessionItem = await Prisma.sessionItem.findUnique({
       where: { id: itemId },
     });
     if (!sessionItem)
-      return res.status(404).json({ error: "Session item not found" });
+       {res.status(404).json({ error: "Session item not found" });return;}
     const updatedSessionItem = await Prisma.sessionItem.update({
       where: { id: itemId },
       data: { completed: true },
     });
     res.json(updatedSessionItem);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
-const getSessionConnections = async (req, res) => {
+
+
+interface SessionsConnect{
+  id?:number;
+  topic?:string;
+  timeAvailable?:number;
+  createdAt?:Date
+}
+interface Connection{
+  id?:string;
+  fromSessionId?: string;
+  toSessionId?:   string;
+  strength?:number;   
+  reason?:string;
+}
+
+interface SessionConnectionResponse{
+  connections: Connection[];
+  sessions: SessionsConnect[];
+}
+const getSessionConnections = async (req:Request, res:Response<SessionConnectionResponse|ErrorResponse>) => {
   const userId = req.user?.userId;
   try {
     const user = await Prisma.user.findUnique({ where: { id: userId } });
@@ -159,7 +205,7 @@ const getSessionConnections = async (req, res) => {
   }
 };
 
-module.exports = {
+export{
   createSession,
   getPastSessions,
   getSession,

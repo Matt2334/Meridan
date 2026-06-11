@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useRouter } from "next/navigation";
+import { useRouter} from "next/navigation";
 
 // :root {
 //     --cream: #f5f3ef;

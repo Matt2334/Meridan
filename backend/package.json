@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "build": "tsc",
     "seed": "node prisma/seed.js"
   },
   "dependencies": {
@@ -23,8 +24,13 @@
     "pg": "^8.19.0"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.9.3",
     "nodemon": "^2.0.22",
-    "prisma": "^7.4.1"
+    "prisma": "^7.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
   }
 }

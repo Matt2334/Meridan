@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const { createBookmark, deleteBookmark, getBookmarks, getBookmark } = require("../controllers/bookmarkController");
-const authJWT = require("../middleware/auth");
+import { createBookmark, deleteBookmark, getBookmarks, getBookmark } from "../controllers/bookmarkController";
+import authJWT from "../middleware/auth";
 
 
 router.post("/bookmark", authJWT, createBookmark);

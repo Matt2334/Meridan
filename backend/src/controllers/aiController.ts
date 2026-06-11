@@ -1,19 +1,24 @@
-const { Prisma } = require("../../prisma/library/prisma");
-const { GoogleGenAI } = require("@google/genai");
+import { Prisma } from "../../prisma/library/prisma";
+import { GoogleGenAI } from "@google/genai";
+import {Request, Response} from "express";
+import { GetTakeawaysParams, TakeawayResponse, ErrorResponse } from "../types";
+// Request<Params, ResBody, ReqBody, QueryParams>
+
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-const generateTakeaways = async (req, res) => {
+// TakeawayResponse{takeaways:JSON; conversationStarters:JSON;}
+const generateTakeaways = async (req: Request<GetTakeawaysParams>, res:Response<TakeawayResponse|ErrorResponse>) => {
   const { sessionId } = req.params;
   const userId = req.user?.userId;
-  if (!userId) return res.status(401).json({ message: "Unauthorized" });
+  if (!userId) return res.status(401).json({ error: "Unauthorized" });
   try {
     const session = await Prisma.session.findUnique({
       where: { id: sessionId, userId },
       include: { sessionItems: { include: { content: true } } },
     });
-    if (!session) return res.status(404).json({ message: "Session not found" });
+    if (!session) return res.status(404).json({ error: "Session not found" });
     if (session.userId !== userId)
       return res.status(403).json({ error: "Unauthorized" });
     if (session.takeaways && session.talkingPoints) {
@@ -64,14 +69,14 @@ Respond in this exact JSON format with no preamble:
     res.status(200).json(parsed);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: (err as Error).message });
   }
 };
 
-const crossConnections = async ({ id, userId }) => {
+
+const crossConnections = async ({ id, userId }:{id:string, userId:string}) => {
   try {
     const isConnection = await Prisma.sessionConnection.findMany({where:{fromSessionId:id}})
-    // if (isConnection) return "sucessful"
     const session = await Prisma.session.findUnique({
       where: { id, userId },
       include: {
@@ -136,7 +141,7 @@ Only include connections with strength > 0.3.
 //     }
 // }
 
-module.exports = {
+export{
   generateTakeaways,
   crossConnections,
 };
