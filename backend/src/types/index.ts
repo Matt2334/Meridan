@@ -3,6 +3,7 @@ export * from './content';
 export * from './session';
 export * from './bookmark';
 export * from './ai';
+export * from './user';
 
 enum UserRole {
   ADMIN,

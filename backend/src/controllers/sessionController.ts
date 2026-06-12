@@ -12,7 +12,7 @@ import {
   ErrorResponse
 } from "../types";
 
-// Request<Params, ResBody, ReqBody, QueryParams>
+
 
 // router.get('/sessions', authJWT, getPastSessions);
 interface PastSessions {

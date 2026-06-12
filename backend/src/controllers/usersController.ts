@@ -1,31 +1,49 @@
-const { Prisma } = require("../../prisma/library/prisma");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-
+import { Prisma } from "../../prisma/library/prisma";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { Request, Response } from "express";
 // router.post('/signout', signOut);
-const signOut = async (req, res) => {
-  const userId = req.user?.userId;
+import {
+  SignUpBodyRequest,
+  SignInBody,
+  UserResponse,
+  UpdateUserRequest,
+  UpdateUserResponse,
+  ErrorResponse,
+} from "../types";
+// Request<Params, ResBody, ReqBody, QueryParams>
+
+interface MessageResponse {
+  message: string;
+}
+const signOut = async (
+  req: Request,
+  res: Response<MessageResponse | ErrorResponse>,
+) => {
+  // const userId = req.user?.userId;
   try {
-    // await Prisma.sessions.deleteMany({ where: { userId } });
     res.clearCookie("token");
     res.json({ message: "Signed out successfully" });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
   }
 };
 
 // router.post('/signup', signUp);
-const signUp = async (req, res) => {
-  const { email, password, name, preferences } = req.body;
-  // should we store reading speed?
+const signUp = async (
+  req: Request<{}, {}, SignUpBodyRequest>,
+  res: Response<MessageResponse | ErrorResponse>,
+) => {
+  const { email, password, name } = req.body;
+  // should we store reading speed or preferences?
   try {
     const p = await bcrypt.hash(password, 10);
     const user = await Prisma.user.create({
-      data: { email: email, name: name? name: 'John Doe', password: p, preferences: preferences },
+      data: { email: email, name: name ? name : "John Doe", password: p },
     });
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role:user.role },
+      { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
@@ -38,12 +56,15 @@ const signUp = async (req, res) => {
 
     res.status(201).json({ message: "User created successfully" });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
   }
 };
 // router.get('/signIn', signIn);
-const signIn = async (req, res) => {
+const signIn = async (
+  req: Request<{}, {}, SignInBody>,
+  res: Response<MessageResponse | ErrorResponse>,
+) => {
   const { email, password } = req.body;
   try {
     const user = await Prisma.user.findFirst({ where: { email } });
@@ -52,7 +73,7 @@ const signIn = async (req, res) => {
     if (!pMatch) return res.status(401).json({ error: "Invalid password" });
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role:user.role },
+      { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
@@ -64,13 +85,16 @@ const signIn = async (req, res) => {
     });
     res.json({ message: "Sign in successful" });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
   }
 };
 
 // router.delete('/delete', deleteUser);
-const deleteUser = async (req, res) => {
+const deleteUser = async (
+  req: Request,
+  res: Response<MessageResponse | ErrorResponse>,
+) => {
   const userId = req.user?.userId;
   try {
     const user = await Prisma.user.findUnique({ where: { id: userId } });
@@ -80,34 +104,43 @@ const deleteUser = async (req, res) => {
 
     res.json({ message: "User deleted successfully" });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // router.get('/me', userInfo);
-const userInfo = async (req, res) => {
+const userInfo = async (
+  req: Request,
+  res: Response<UserResponse | ErrorResponse>,
+) => {
   const userId = req.user?.userId;
   try {
-    const user = await Prisma.user.findUnique({ where: { id: userId }, select: {
-    id: true,
-    email: true,
-    name: true,
-    role: true,
-    createdAt: true,
-  } });
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const user = await Prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
     res.json(user);
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
   }
 };
 
 // router.patch('/update', updateUser);
-const updateUser = async (req, res) => {
+const updateUser = async (req:Request<{},{}, UpdateUserRequest>, res:Response<UpdateUserResponse|ErrorResponse>) => {
   // const {preferences } = req.body;
-  const {email, name} = req.body;
+  const { email, name } = req.body;
   const userId = req.user?.userId;
   try {
     const user = await Prisma.user.update({
@@ -118,30 +151,31 @@ const updateUser = async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
     return res.status(200).json(user);
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
-  }
-};
-const loggedIn = async (req, res) => {
-  const token = req.cookies.token;
-  if (!token) return res.json({ loggedIn: false });
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await Prisma.user.findFirst({
-      where: { id: decoded.userId },
-    });
-    res.json({ authenticated: true });
-  } catch (err) {
-    res.json({ authenticated: false, error: err.message });
+    console.error(err);
+    res.status(500).json({ error: (err as Error).message });
   }
 };
 
-module.exports = {
-  signOut,
-  signIn,
-  signUp,
-  deleteUser,
-  userInfo,
-  updateUser,
-  loggedIn,
+interface LoginResponse{
+  authenticated:boolean;
+  error?:string;
+}
+const loggedIn = async (req:Request, res:Response<LoginResponse>) => {
+  const token = req.cookies.token;
+  if (!token) return res.json({ authenticated: false });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as {userId:string;};
+    const user = await Prisma.user.findFirst({
+      where: { id: decoded.userId },
+    });
+    if(!user){
+      res.status(403).json({authenticated:false});
+      return;
+    }
+    res.json({ authenticated: true });
+  } catch (err) {
+    res.json({ authenticated: false, error: (err as Error).message });
+  }
 };
+
+export { signOut, signIn, signUp, deleteUser, userInfo, updateUser, loggedIn };

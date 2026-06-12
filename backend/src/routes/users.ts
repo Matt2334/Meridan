@@ -1,9 +1,9 @@
-const express = require('express');
-const authJWT = require('../middleware/auth');
-const {authLimiter} = require('../middleware/rateLimiters');
+import express from "express";
+import authJWT from "../middleware/auth";
+import {authLimiter} from '../middleware/rateLimiters';
 const router = express.Router();
 
-const {signUp, signIn, deleteUser, signOut, userInfo, updateUser, loggedIn } = require('../controllers/usersController');
+import {signUp, signIn, deleteUser, signOut, userInfo, updateUser, loggedIn } from '../controllers/usersController';
 
 router.post('/signup', authLimiter, signUp);
 router.post('/signIn', authLimiter, signIn);
