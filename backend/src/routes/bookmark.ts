@@ -1,11 +1,11 @@
 import express from "express";
-const router = express.Router();
 import { createBookmark, deleteBookmark, getBookmarks, getBookmark } from "../controllers/bookmarkController";
 import authJWT from "../middleware/auth";
 
+const bookmarkRouter = express.Router();
 
-router.post("/bookmark", authJWT, createBookmark);
-router.delete("/bookmark", authJWT, deleteBookmark);
-router.get("/bookmarks", authJWT, getBookmarks);
-router.get("/bookmark/:contentId", authJWT, getBookmark);
-module.exports = router;
+bookmarkRouter.post("/bookmark", authJWT, createBookmark);
+bookmarkRouter.delete("/bookmark", authJWT, deleteBookmark);
+bookmarkRouter.get("/bookmarks", authJWT, getBookmarks);
+bookmarkRouter.get("/bookmark/:contentId", authJWT, getBookmark);
+export {bookmarkRouter};

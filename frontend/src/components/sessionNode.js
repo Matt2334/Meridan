@@ -62,8 +62,8 @@ export default function SessionNode({ data }) {
       $width={data.width}
       $color={data.color}
     >
-      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+      <Handle type="target"  position={Position.Right='50%'}style={{ opacity: 0 }} />
+      <Handle type="source"  position={Position.Left='50%'} style={{ opacity: 0 }} />
       <Popup $visible={isHover}>
         <Topic>{data.topic}</Topic>
         <Title>{data.title}</Title>

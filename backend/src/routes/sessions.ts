@@ -4,14 +4,15 @@
 // const {createSession, getPastSessions, getSession, sessionComplete, sessionItemRead, getSessionConnections} = require('../controllers/sessionController');
 import express from "express";
 import authJWT from "../middleware/auth";
-const router = express.Router();
 import {createSession, getPastSessions, getSession, sessionComplete, sessionItemRead, getSessionConnections} from '../controllers/sessionController';
 
-router.get('/sessions', authJWT, getPastSessions);
-router.get('/session/connections', authJWT, getSessionConnections);
-router.get('/session/:id', authJWT, getSession);
-router.post('/sessions', authJWT, createSession);
-router.patch('/sessions/:id/complete', authJWT, sessionComplete);
-router.patch('/sessions/:sessionId/items/:itemId/read', authJWT, sessionItemRead);
+const sessionRouter = express.Router();
 
-module.exports = router;
+sessionRouter.get('/sessions', authJWT, getPastSessions);
+sessionRouter.get('/session/connections', authJWT, getSessionConnections);
+sessionRouter.get('/session/:id', authJWT, getSession);
+sessionRouter.post('/sessions', authJWT, createSession);
+sessionRouter.patch('/sessions/:id/complete', authJWT, sessionComplete);
+sessionRouter.patch('/sessions/:sessionId/items/:itemId/read', authJWT, sessionItemRead);
+
+export {sessionRouter};

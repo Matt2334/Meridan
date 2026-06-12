@@ -1,18 +1,18 @@
 // require('dotenv').config({ path: `../.env.local` });
 require('dotenv').config();
 
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
-const db = require('./db');
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import db from './db';
 
-const usersRouter = require('./routes/users');
-const contentRouter = require('./routes/content');
-const sessionRouter = require('./routes/sessions');
-const bookmarkRouter = require('./routes/bookmark');
-const aiRouter = require('./routes/ai');
-const { generalLimiter } = require('./middleware/rateLimiters');
+import {userRouter} from './routes/users';
+import {contentRouter} from './routes/content';
+import {sessionRouter} from './routes/sessions';
+import {bookmarkRouter} from './routes/bookmark';
+import {aiRouter} from './routes/ai';
+import { generalLimiter } from './middleware/rateLimiters';
 const app = express();
 
 app.use(cors({
@@ -33,7 +33,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
-app.use('/users', usersRouter);
+app.use('/users', userRouter);
 app.use('/', contentRouter);
 app.use('/', sessionRouter);
 app.use('/', bookmarkRouter);

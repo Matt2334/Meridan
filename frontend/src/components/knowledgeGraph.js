@@ -62,7 +62,7 @@ export default function KnowledgeGraph({ sessions, connections }) {
     type: "sessionNode",
     data: {
       topic: session.topic,
-      title: session.title || "unset",
+      title: session.title || "...",
       date: new Date(session.createdAt).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -82,7 +82,7 @@ export default function KnowledgeGraph({ sessions, connections }) {
       strength: conn.strength,
     },
     animated: false,
-    style: { stroke: "#d4e0f0", strokeWidth: conn.strength * 3 },
+    style: { stroke: "#b7cce9", strokeWidth: conn.strength * 3 },
     type: 'connectionEdge',
   }));
   return (
