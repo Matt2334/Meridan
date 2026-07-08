@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node dist/src/index.js",
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "seed": "node prisma/seed.js"
@@ -13,6 +13,7 @@
     "@google/genai": "^2.7.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.4.1",
+    "@types/redis": "^4.0.10",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -21,7 +22,8 @@
     "express-rate-limit": "^8.5.2",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0",
-    "pg": "^8.19.0"
+    "pg": "^8.19.0",
+    "redis": "^6.0.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
