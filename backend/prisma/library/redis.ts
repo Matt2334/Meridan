@@ -2,7 +2,7 @@ import { createClient, RedisClientType } from 'redis';
 
 const client = createClient({
   url: process.env.REDIS_URL,
-  ...(process.env.NODE_ENV==='production' && {
+  ...(process.env.REDIS_URL.startsWith('rediss://') && {
     socket: {
     tls: true,
     rejectUnauthorized: false
