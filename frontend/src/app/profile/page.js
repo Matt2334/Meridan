@@ -242,7 +242,7 @@ export default function EditProfile() {
         setUser(data);
         setName(data.name || "");
         setEmail(data.email || "");
-        console.log(data);
+        // console.log(data);
         // setLoading(false);
       } catch (err) {
         console.error(err);

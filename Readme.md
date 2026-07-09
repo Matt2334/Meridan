@@ -31,14 +31,16 @@ starters at the end.
 
 ## Features
 
-- Time-calibrated session generation across 8 topics
-- JWT authentication with secure httpOnly cookies
-- Session history per user
+- Time-calibrated session generation across 8 topics with content deduplication
+- JWT authentication with secure httpOnly cookies and cross-origin cookie handling
+- AI-generated session summaries and key takeaways powered by Gemini
+- AI-powered cross-session connection generation with strength scoring
+- Interactive knowledge graph visualizing learning connections across sessions
+- Session history with pagination
+- Redis caching for session history, bookmarks, and user profiles
 - Skeleton loading states
-- Cross-origin cookie handling between separate frontend/backend deployments
-- Content deduplication — previously seen content is excluded from new sessions
-- Fallback pool when all content for a topic has been seen
-- Rate Limiter for both general and authentication APIs
+- Rate limiting on general and authentication endpoints
+- Fallback content pool when all topic content has been seen
 
 
 ---
@@ -54,6 +56,8 @@ Next.js (Vercel)
 Express + Prisma (Render)
       ↓
 PostgreSQL (Supabase)
+      ↓
+Redis Cache (upstash)
 \```
 
 ### Session Generation Algorithm
@@ -96,6 +100,8 @@ DATABASE_URL=
 PORT=
 ORIGIN=
 JWT_SECRET=
+GEMINI_API_KEY =
+REDIS_URL=
 \```
 
 Frontend `.env.local`:
@@ -118,6 +124,20 @@ NEXT_PUBLIC_API_URL=
 
 - **IPv6 incompatibility on Render** — Render's free tier doesn't support IPv6, 
   requiring the Supabase Supavisor pooled connection string with `?pgbouncer=true`
+
+- **Knowledge graph with AI connections** — implemented a node-based
+  constellation graph using React Flow where sessions are connected 
+  by AI-generated conceptual relationships scored by strength, 
+  requiring a custom edge component with hover tooltips and a 
+  force-directed radial layout
+
+- **Redis caching layer** — added Redis for session history, bookmarks,
+  and user profiles with cache invalidation on write operations and 
+  pattern-based deletion for paginated data
+
+- **TypeScript migration** — incrementally migrated the Express backend 
+  from JavaScript to TypeScript, adding typed request/response interfaces,
+  controller generics, and a shared types barrel file
 
 ---
 

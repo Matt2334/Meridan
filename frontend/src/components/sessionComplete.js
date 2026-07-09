@@ -102,7 +102,7 @@ export default function sessionComplete({sessionId }) {
       );
       const data = await res.json();
       setTakeaways(data);
-      console.log(data);
+      // console.log(data);
 
     } catch (err) {
       console.error(err);
