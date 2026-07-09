@@ -1,7 +1,12 @@
 import { createClient, RedisClientType } from 'redis';
 
 const client = createClient({
-  url: process.env.REDIS_URL
+  url: process.env.REDIS_URL,
+  ...(process.env.NODE_ENV==='production' && {
+    socket: {
+    tls: true,
+    rejectUnauthorized: false
+  }})
 });
 
 client.on('error', (err) => console.error('Redis error:', err));
